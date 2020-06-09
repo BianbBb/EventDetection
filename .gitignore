@@ -1,0 +1,11 @@
+# folder
+.idea/
+__pycache__
+dataset/
+
+# file
+*.rar
+*.zip
+*.7z
+*.mp4
+*.npy
