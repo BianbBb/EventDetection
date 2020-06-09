@@ -3,9 +3,13 @@
 # read val_video_ids.txt   # test dataset 4835
 
 import os
+import sys
 import json
 import urllib.request as request
 import time
+
+sys.path.append("../utils/")
+import parse_yaml
 
 
 def down_train_feature(type='video', train_annotations_file="../../data/train_annotations.json",
@@ -29,24 +33,23 @@ def down_train_feature(type='video', train_annotations_file="../../data/train_an
         num += 1
         file_url = root_url.format(video_id)
         print("file {}/{} starting download from {}".format(num, total_num, file_url))
-        download_from_url(file_url, os.path.join(saved_path, video_id+suffix))
+        download_from_url(file_url, os.path.join(saved_path, video_id + suffix))
 
 
-def down_test_feature(info_path, folder_dir, type='i3d',
-                      url_path='http://tianchi-competition.oss-cn-hangzhou.aliyuncs.com/531798/'):
-    print(folder_dir)
+def down_test_feature(info_path="../../data/val_video_ids.txt", type='i3d', saved_path="../../data/test/"):
+    url_path='http://tianchi-competition.oss-cn-hangzhou.aliyuncs.com/531798/val/'
     time.sleep(3)
-    if not os.path.exists(folder_dir):
-        print("Selected folder not exist, try to create it.")
-        os.makedirs(folder_dir)
-
+    saved_path = os.path.join(saved_path, type)
+    if not os.path.exists(saved_path):
+        os.makedirs(saved_path)
     with open(info_path, 'r') as f:
         lines = f.readlines()
         num = 0
         for line in lines:
             num = num + 1
             feature_url = url_path + type + '_feature/' + line[:-1] + '.npy'
-            save_path = os.path.join(folder_dir, line[:-1] + '.npy')
+            print(feature_url)
+            save_path = os.path.join(saved_path, line[:-1] + '.npy')
             download_from_url(feature_url, save_path)
             if num % 100 == 0:
                 print('{} files have been doenloaded '.format(num))
@@ -70,4 +73,12 @@ def download_from_url(url, filepath):
 
 
 if __name__ == '__main__':
-    down_train_feature(type="i3d")
+    config = parse_yaml.read_config("../../config/default.yml")  # config file
+    root_folder = config['data']['root_folder']
+    # --- test download train file ---
+    saved_path = os.path.join(root_folder, "train")
+    down_train_feature(type="i3d", saved_path=saved_path)
+
+    # --- test download test file ---
+    # saved_path = os.path.join(root_folder, "test")
+    # down_test_feature(saved_path=saved_path)

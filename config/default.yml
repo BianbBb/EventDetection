@@ -1,2 +1,2 @@
 data:
-  root_folder: ../data/
+  root_folder: ../../data/dataset/  # train文件夹所在目录

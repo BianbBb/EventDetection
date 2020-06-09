@@ -3,3 +3,4 @@ numba
 torch
 opencv-python
 pyyaml
+pandas
