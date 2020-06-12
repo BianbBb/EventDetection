@@ -12,3 +12,4 @@ logs/
 *.mp4
 *.npy
 *.csv
+anet_anno_action.json
