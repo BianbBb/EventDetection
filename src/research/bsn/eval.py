@@ -52,6 +52,7 @@ def plot_metric(opt, average_nr_proposals, average_recall, recall, tiou_threshol
     plt.ylim([0, 1.0])
     plt.setp(plt.axes().get_xticklabels(), fontsize=fn_size)
     plt.setp(plt.axes().get_yticklabels(), fontsize=fn_size)
+
     plt.savefig(opt["save_fig_path"])
     # plt.show()
 
