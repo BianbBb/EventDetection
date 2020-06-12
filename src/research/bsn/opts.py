@@ -20,7 +20,7 @@ def parse_args():
     # TEM Dataset settings
     parser.add_argument('--temporal_scale', type=int, default=100)
     parser.add_argument('--boundary_ratio', type=float, default=0.1)
-    parser.add_argument('--feature_path', type=str, default="/data/byh/ActivityNet v1.3/")
+    parser.add_argument('--feature_path', type=str, default="/data/byh/ActivityNet v1.3/BSN/")
 
     # PEM Dataset settings
     parser.add_argument('--pem_top_K', type=int, default=500)
