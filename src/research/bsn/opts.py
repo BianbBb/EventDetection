@@ -20,7 +20,7 @@ def parse_args():
     # TEM Dataset settings
     parser.add_argument('--temporal_scale', type=int, default=100)
     parser.add_argument('--boundary_ratio', type=float, default=0.1)
-    parser.add_argument('--feature_path', type=str, default="/media/zhouchen/maple_zys/dataset/ActivityNet/")
+    parser.add_argument('--feature_path', type=str, default="/data/byh/ActivityNet v1.3/")
 
     # PEM Dataset settings
     parser.add_argument('--pem_top_K', type=int, default=500)
@@ -37,10 +37,10 @@ def parse_args():
     # TEM Training settings
     parser.add_argument('--tem_training_lr', type=float, default=0.001)
     parser.add_argument('--tem_weight_decay', type=float, default=0.0001)
-    parser.add_argument('--tem_epoch', type=int, default=20)
+    parser.add_argument('--tem_epoch', type=int, default=200)
     parser.add_argument('--tem_step_size', type=int, default=7)
     parser.add_argument('--tem_step_gamma', type=float, default=0.1)
-    parser.add_argument('--tem_batch_size', type=int, default=16)
+    parser.add_argument('--tem_batch_size', type=int, default=256)
     parser.add_argument('--tem_match_thres', type=float, default=0.5)
 
     # PEM Training settings
