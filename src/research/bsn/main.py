@@ -1,4 +1,5 @@
 import sys
+
 import os
 import json
 
@@ -20,13 +21,16 @@ from utils import parse_args
 sys.dont_write_bytecode = True
 
 
+
 def train_TEM(data_loader, model, optimizer, epoch, writer, opt):
     model.train()
     epoch_action_loss = 0
     epoch_start_loss = 0
     epoch_end_loss = 0
     epoch_cost = 0
+
     n_iter = None
+
     for n_iter, (input_data, label_action, label_start, label_end) in enumerate(data_loader):
         TEM_output = model(input_data)
         loss = TEM_loss_function(label_action, label_start, label_end, TEM_output, opt)
@@ -58,7 +62,9 @@ def test_TEM(data_loader, model, epoch, writer, opt):
     epoch_start_loss = 0
     epoch_end_loss = 0
     epoch_cost = 0
+
     n_iter = None
+
     for n_iter, (input_data, label_action, label_start, label_end) in enumerate(data_loader):
         TEM_output = model(input_data)
         loss = TEM_loss_function(label_action, label_start, label_end, TEM_output, opt)
