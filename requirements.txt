@@ -1,6 +1,8 @@
 numpy
 numba
+matplotlib
 torch
 opencv-python
 pyyaml
 pandas
+tensorboardx
