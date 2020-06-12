@@ -39,7 +39,7 @@ def parse_opt():
     parser.add_argument(
         '--feature_path',
         type=str,
-        default="/media/zhouchen/maple_zys/dataset/ActivityNet/")
+        default="/data/byh/ActivityNet v1.3/BSN/")
     
     # PEM Dataset settings
     parser.add_argument(
