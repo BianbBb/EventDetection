@@ -140,7 +140,9 @@ class ProposalDataSet(data.Dataset):
                 self.video_dict[video_name] = video_info
             if self.subset in video_subset:
                 self.video_dict[video_name] = video_info
+
         self.video_list = list(self.video_dict.keys())
+
         print("%s subset video numbers: %d" % (self.subset, len(self.video_list)))
 
     def __len__(self):

@@ -1,22 +1,25 @@
 import sys
 
-sys.dont_write_bytecode = True
 import os
 import json
+
+import numpy as np
+import pandas as pd
 import torch
-import torchvision
 import torch.nn.parallel
 import torch.optim as optim
-import numpy as np
 from tensorboardX import SummaryWriter
-import opts
+
 from dataset import VideoDataSet, ProposalDataSet
 from models import TEM, PEM
 from loss_function import TEM_loss_function, PEM_loss_function
-import pandas as pd
 from pgm import PGM_proposal_generation, PGM_feature_generation
 from post_processing import BSN_post_processing
 from eval import evaluation_proposal
+from utils import parse_args
+
+sys.dont_write_bytecode = True
+
 
 
 def train_TEM(data_loader, model, optimizer, epoch, writer, opt):
@@ -25,6 +28,9 @@ def train_TEM(data_loader, model, optimizer, epoch, writer, opt):
     epoch_start_loss = 0
     epoch_end_loss = 0
     epoch_cost = 0
+
+    n_iter = None
+
     for n_iter, (input_data, label_action, label_start, label_end) in enumerate(data_loader):
         TEM_output = model(input_data)
         loss = TEM_loss_function(label_action, label_start, label_end, TEM_output, opt)
@@ -56,6 +62,9 @@ def test_TEM(data_loader, model, epoch, writer, opt):
     epoch_start_loss = 0
     epoch_end_loss = 0
     epoch_cost = 0
+
+    n_iter = None
+
     for n_iter, (input_data, label_action, label_start, label_end) in enumerate(data_loader):
         TEM_output = model(input_data)
         loss = TEM_loss_function(label_action, label_start, label_end, TEM_output, opt)
@@ -290,7 +299,7 @@ def main(opt):
 
 
 if __name__ == '__main__':
-    opt = opts.parse_opt()
+    opt = parse_args()
     opt = vars(opt)
     if not os.path.exists(opt["checkpoint_path"]):
         os.makedirs(opt["checkpoint_path"])
