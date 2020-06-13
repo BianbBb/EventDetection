@@ -87,7 +87,19 @@ class PEM(torch.nn.Module):
         x = torch.sigmoid(0.1 * self.fc2(x))
         return x
 
+
 if __name__ == '__main__':
+    from opts import parse_args
+    import os
+    import json
+    opt = parse_args()
+    opt = vars(opt)
+    if not os.path.exists(opt["checkpoint_path"]):
+        os.makedirs(opt["checkpoint_path"])
+    opt_file = open(opt["checkpoint_path"] + "/opts.json", "w")
+    json.dump(opt, opt_file)
+    opt_file.close()
     from torchsummary import summary
-    tem = TEM()
+    tem = TEM(opt)
+    summary(tem.cuda(),(400,100),batch_size=4)
 

@@ -37,7 +37,7 @@ def parse_args():
     # TEM Training settings
     parser.add_argument('--tem_training_lr', type=float, default=0.001)
     parser.add_argument('--tem_weight_decay', type=float, default=0.0001)
-    parser.add_argument('--tem_epoch', type=int, default=200)
+    parser.add_argument('--tem_epoch', type=int, default=20)
     parser.add_argument('--tem_step_size', type=int, default=7)
     parser.add_argument('--tem_step_gamma', type=float, default=0.1)
     parser.add_argument('--tem_batch_size', type=int, default=256)
