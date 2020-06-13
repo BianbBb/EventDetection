@@ -21,7 +21,6 @@ from opts import parse_args
 sys.dont_write_bytecode = True
 
 
-
 def train_TEM(data_loader, model, optimizer, epoch, writer, opt):
     model.train()
     epoch_action_loss = 0

@@ -86,3 +86,8 @@ class PEM(torch.nn.Module):
         x = F.relu(0.1 * self.fc1(x))
         x = torch.sigmoid(0.1 * self.fc2(x))
         return x
+
+if __name__ == '__main__':
+    from torchsummary import summary
+    tem = TEM()
+
