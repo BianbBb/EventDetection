@@ -4,6 +4,7 @@ __pycache__
 dataset/
 runs/
 logs/
+pretrained_model/
 
 
 
