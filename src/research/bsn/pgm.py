@@ -153,7 +153,7 @@ def generateFeature(opt, video_list, video_dict):
         seg_xmaxs = adf.xmax.values[:]
         video_scale = len(adf)
         video_gap = seg_xmaxs[0] - seg_xmins[0]
-        video_extend = video_scale / 4 + 10
+        video_extend = video_scale // 4 + 10
         pdf = pandas.read_csv("./output/PGM_proposals/" + video_name + ".csv")
         video_subset = video_dict[video_name]['subset']
         if video_subset == "training":
@@ -212,9 +212,9 @@ def generateFeature(opt, video_list, video_dict):
 
 def PGM_proposal_generation(opt):
     video_dict = load_json(opt["video_anno"])
-    video_list = video_dict.keys()  # [:199]
+    video_list = list(video_dict.keys())  # [:199]
     num_videos = len(video_list)
-    num_videos_per_thread = num_videos / opt["pgm_thread"]
+    num_videos_per_thread = num_videos // opt["pgm_thread"]
     processes = []
     for tid in range(opt["pgm_thread"] - 1):
         tmp_video_list = video_list[tid * num_videos_per_thread:(tid + 1) * num_videos_per_thread]
@@ -233,9 +233,9 @@ def PGM_proposal_generation(opt):
 
 def PGM_feature_generation(opt):
     video_dict = getDatasetDict(opt)
-    video_list = video_dict.keys()
+    video_list = list(video_dict.keys())
     num_videos = len(video_list)
-    num_videos_per_thread = num_videos / opt["pgm_thread"]
+    num_videos_per_thread = num_videos // opt["pgm_thread"]
     processes = []
     for tid in range(opt["pgm_thread"] - 1):
         tmp_video_list = video_list[tid * num_videos_per_thread:(tid + 1) * num_videos_per_thread]
