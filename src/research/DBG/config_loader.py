@@ -17,7 +17,7 @@ class DBGConfig():
         """ Load yaml file """
         with open(args.config_file, 'r', encoding='utf-8') as f:
             tmp_data = f.read()
-            data = yaml.load(tmp_data)
+            data = yaml.load(tmp_data,Loader=yaml.FullLoader)
 
         """ Parse config info
         """
