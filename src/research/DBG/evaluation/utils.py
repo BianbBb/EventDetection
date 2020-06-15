@@ -5,6 +5,7 @@ import numpy as np
 
 API = 'http://ec2-52-11-11-89.us-west-2.compute.amazonaws.com/challenge17/api.py'
 
+
 def get_blocked_videos(api=API):
     # api_url = '{}?action=get_blocked'.format(api)
     # req = urllib2.Request(api_url)
@@ -12,6 +13,7 @@ def get_blocked_videos(api=API):
     # return json.loads(response.read())
     with open('api.json') as json_file:
         return json.load(json_file)
+
 
 def interpolated_prec_rec(prec, rec):
     """Interpolated AP - VOCdevkit from VOC 2011.
@@ -23,6 +25,7 @@ def interpolated_prec_rec(prec, rec):
     idx = np.where(mrec[1::] != mrec[0:-1])[0] + 1
     ap = np.sum((mrec[idx] - mrec[idx - 1]) * mprec[idx])
     return ap
+
 
 def segment_iou(target_segment, candidate_segments):
     """Compute the temporal intersection over union between a
@@ -46,11 +49,12 @@ def segment_iou(target_segment, candidate_segments):
     segments_intersection = (tt2 - tt1).clip(0)
     # Segment union.
     segments_union = (candidate_segments[:, 1] - candidate_segments[:, 0]) \
-      + (target_segment[1] - target_segment[0]) - segments_intersection
+                     + (target_segment[1] - target_segment[0]) - segments_intersection
     # Compute overlap as the ratio of the intersection
     # over union of two segments.
     tIoU = segments_intersection.astype(float) / segments_union
     return tIoU
+
 
 def wrapper_segment_iou(target_segments, candidate_segments):
     """Compute intersection over union btw segments
@@ -72,6 +76,6 @@ def wrapper_segment_iou(target_segments, candidate_segments):
     n, m = candidate_segments.shape[0], target_segments.shape[0]
     tiou = np.empty((n, m))
     for i in range(m):
-        tiou[:, i] = segment_iou(target_segments[i,:], candidate_segments)
+        tiou[:, i] = segment_iou(target_segments[i, :], candidate_segments)
 
     return tiou

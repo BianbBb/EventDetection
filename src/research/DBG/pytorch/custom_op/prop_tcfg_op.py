@@ -3,6 +3,7 @@ from torch.autograd import Function
 
 import prop_tcfg_cuda
 
+
 class PropTcfgFunction(Function):
     @staticmethod
     def forward(ctx, input, start_num=8, center_num=16, end_num=8):
