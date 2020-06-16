@@ -32,10 +32,11 @@ def get_filter_video_names(video_info_file, gt_len_thres=0.98):
     video_lists = list(json_data)
     for video_name in video_lists:
         video_info = json_data[video_name]
-        load_npy(os.path.join("{}.npy".format(video_name)))
+
         video_second = video_info["duration"]
         gt_lens = []
         video_labels = video_info["annotations"]
+
         for j in range(len(video_labels)):
             tmp_info = video_labels[j]
             tmp_start = tmp_info["segment"][0]
@@ -43,6 +44,7 @@ def get_filter_video_names(video_info_file, gt_len_thres=0.98):
             tmp_start = max(min(1, tmp_start / video_second), 0)
             tmp_end = max(min(1, tmp_end / video_second), 0)
             gt_lens.append(tmp_end - tmp_start)
+
         if len(gt_lens):
             mean_len = np.mean(gt_lens)
             if mean_len >= gt_len_thres:
@@ -169,7 +171,18 @@ def getFullData(video_dict, dbg_config, last_channel=True, training=True):
             print("%d / %d videos are loaded" % (i, len(video_list)))
         video_name = video_list[i]
         video_info = video_dict[video_name]
-        video_second = video_info["duration_second"]
+
+        # load feature
+        # tmp_df = pd.read_csv(os.path.join(data_dir, video_name + '.csv'))
+        # video_feat = tmp_df.values[:, :]
+
+        video_feat = load_npy(os.path.join("{}.npy".format(video_name)))
+        if not last_channel:
+            video_feat = np.transpose(video_feat, [1, 0])
+        batch_anchor_feature.append(video_feat)
+
+        # video_second = video_info["duration_second"]
+        video_second = (len(video_feat) * 8) // 15
         gt_lens = []
         bboxes = []
         video_labels = video_info["annotations"]
@@ -191,13 +204,6 @@ def getFullData(video_dict, dbg_config, last_channel=True, training=True):
 
         tmp_anchor_xmin = [tgap * i for i in range(tscale)]
         tmp_anchor_xmax = [tgap * i for i in range(1, tscale + 1)]
-
-        # load feature
-        tmp_df = pd.read_csv(os.path.join(data_dir, video_name + '.csv'))
-        video_feat = tmp_df.values[:, :]
-        if not last_channel:
-            video_feat = np.transpose(video_feat, [1, 0])
-        batch_anchor_feature.append(video_feat)
 
         # gen labels
         gt_bbox = np.array(bboxes)
