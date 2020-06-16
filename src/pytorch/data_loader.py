@@ -27,12 +27,16 @@ class DBGDataSet(Dataset):
         training = True
         if mode == 'training':
             video_dict = train_dict
+            video_dict = dict(list(video_dict.items())[:1000])# TODO：delete this line
+
         else:
             training = False
             video_dict = val_dict
         self.mode = mode
         self.video_dict = video_dict
+
         video_num = len(list(video_dict.keys()))
+
         video_list = np.arange(video_num)
 
         # load raw data
