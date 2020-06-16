@@ -7,7 +7,7 @@ import numpy as np
 import tqdm
 
 import data_loader
-import utils
+import utils.util as util
 from model import DBG
 from config_loader import dbg_config
 
@@ -99,7 +99,7 @@ if __name__ == "__main__":
             batch_result_pstart.append(out_start[:, 0].cpu().detach().numpy())
             batch_result_pend.append(out_end[:, 0].cpu().detach().numpy())
 
-        utils.save_proposals_result(batch_video_list,
+        util.save_proposals_result(batch_video_list,
                                     batch_result_xmin,
                                     batch_result_xmax,
                                     batch_result_iou,

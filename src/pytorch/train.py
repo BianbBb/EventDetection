@@ -9,7 +9,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import tqdm
-from data_loader import DBGDataSet, gen_mask
+from data_loader import DBGDataSet
+from utils.util import gen_mask
 from model import DBG
 from torch.utils.data import DataLoader
 

@@ -2,7 +2,7 @@ import torch
 from torch.utils.data import Dataset
 
 from config_loader import dbg_config
-from utils import *
+from utils.util import *
 
 """ Load config"""
 """ get input feature temporal scale """
