@@ -3,6 +3,7 @@ from torch.utils.data import Dataset
 
 from config_loader import dbg_config
 from utils.util import *
+import numpy as np
 
 """ Load config"""
 """ get input feature temporal scale """
@@ -27,7 +28,7 @@ class DBGDataSet(Dataset):
         training = True
         if mode == 'training':
             video_dict = train_dict
-            video_dict = dict(list(video_dict.items())[:1000])# TODO：delete this line
+            video_dict = dict(list(video_dict.items())[:50])# TODO：delete this line
 
         else:
             training = False
@@ -50,6 +51,11 @@ class DBGDataSet(Dataset):
 
         # transform data to torch tensor
         for key in list(data_dict.keys()):
+            print(key)
+            print(len(data_dict[key])) ###
+            print(data_dict[key][0])
+            print(np.shape(data_dict[key][0]))
+
             data_dict[key] = torch.Tensor(data_dict[key]).float()
         self.data_dict = data_dict
 
