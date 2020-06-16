@@ -1,6 +1,6 @@
 dataset:
   video_info_file: ../data/Tianchi/train_annotations_new.json # data/video_info_19993.json
-  feat_dir: /data/byh/EventDetection/trin/i3d/ # data/tsn_anet200/all_csv_mean_100/
+  feat_dir: /data/byh/EventDetection/train/i3d/ # data/tsn_anet200/all_csv_mean_100/
   video_filter: true
   data_aug: true
   tscale: 100
