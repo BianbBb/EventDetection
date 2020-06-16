@@ -28,6 +28,7 @@ def load_feature(dir, file):
 def get_filter_video_names(video_info_file, gt_len_thres=0.98):
     """
     Select video according to length of ground truth
+    如果标注的动作持续时间超过视频总长度的0.98，会被剔除
     :param video_info_file: json file path of video information
     :param gt_len_thres: max length of ground truth
     :return: list of video names
