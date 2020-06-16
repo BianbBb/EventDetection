@@ -15,9 +15,14 @@ def load_json(file):
         data = json.load(json_file)
         return data
 
+def load_feature(dir, file):
+    # for DBG on ActivityNet
+    # tmp_df = pd.read_csv(os.path.join(dir, file + '.csv'))
+    # video_feat = tmp_df.values[:, :]
 
-def load_npy(filename):
-    return np.load(filename)
+    # for TianChi dataset
+    video_feat = np.load(os.path.join(dir, "{}.npy".format(file)))
+    return video_feat
 
 
 def get_filter_video_names(video_info_file, gt_len_thres=0.98):
@@ -32,11 +37,11 @@ def get_filter_video_names(video_info_file, gt_len_thres=0.98):
     video_lists = list(json_data)
     for video_name in video_lists:
         video_info = json_data[video_name]
-
+        if video_info['subset'] != "training":
+            continue
         video_second = video_info["duration"]
         gt_lens = []
         video_labels = video_info["annotations"]
-
         for j in range(len(video_labels)):
             tmp_info = video_labels[j]
             tmp_start = tmp_info["segment"][0]
@@ -44,7 +49,6 @@ def get_filter_video_names(video_info_file, gt_len_thres=0.98):
             tmp_start = max(min(1, tmp_start / video_second), 0)
             tmp_end = max(min(1, tmp_end / video_second), 0)
             gt_lens.append(tmp_end - tmp_start)
-
         if len(gt_lens):
             mean_len = np.mean(gt_lens)
             if mean_len >= gt_len_thres:
@@ -136,8 +140,10 @@ def getProposalDataTest(video_list, dbg_config):
         tmp_anchor_xmax = [tgap * i for i in range(1, tscale + 1)]
         batch_anchor_xmin.append(list(tmp_anchor_xmin))
         batch_anchor_xmax.append(list(tmp_anchor_xmax))
+
         tmp_df = pd.read_csv(os.path.join(data_dir, video_name + ".csv"))
         video_feat = tmp_df.values[:, :]
+
         batch_anchor_feature.append(video_feat)
     batch_anchor_xmin = np.array(batch_anchor_xmin)
     batch_anchor_xmax = np.array(batch_anchor_xmax)
@@ -171,18 +177,7 @@ def getFullData(video_dict, dbg_config, last_channel=True, training=True):
             print("%d / %d videos are loaded" % (i, len(video_list)))
         video_name = video_list[i]
         video_info = video_dict[video_name]
-
-        # load feature
-        # tmp_df = pd.read_csv(os.path.join(data_dir, video_name + '.csv'))
-        # video_feat = tmp_df.values[:, :]
-
-        video_feat = load_npy(os.path.join("{}.npy".format(video_name)))
-        if not last_channel:
-            video_feat = np.transpose(video_feat, [1, 0])
-        batch_anchor_feature.append(video_feat)
-
-        # video_second = video_info["duration_second"]
-        video_second = (len(video_feat) * 8) // 15
+        video_second = video_info["duration_second"]
         gt_lens = []
         bboxes = []
         video_labels = video_info["annotations"]
@@ -204,6 +199,13 @@ def getFullData(video_dict, dbg_config, last_channel=True, training=True):
 
         tmp_anchor_xmin = [tgap * i for i in range(tscale)]
         tmp_anchor_xmax = [tgap * i for i in range(1, tscale + 1)]
+
+        # load feature
+        video_feat = load_feature(data_dir, video_name)
+
+        if not last_channel:
+            video_feat = np.transpose(video_feat, [1, 0])
+        batch_anchor_feature.append(video_feat)
 
         # gen labels
         gt_bbox = np.array(bboxes)
@@ -338,7 +340,3 @@ def save_proposals_result(batch_video_list,
             """ write csv file 
             """
             tmp_df.to_csv(os.path.join(result_dir, tmp_video + '.csv'), index=False)
-
-
-if __name__ == '__main__':
-    get_filter_video_names("../../../data/train_annotations.json")
