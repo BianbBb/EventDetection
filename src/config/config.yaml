@@ -4,7 +4,7 @@ dataset:
   video_filter: true
   data_aug: true
   tscale: 100
-  feature_dim: 400
+  feature_dim: 1024
 
 saver:
   root_dir: output

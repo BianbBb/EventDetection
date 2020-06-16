@@ -16,6 +16,10 @@ def load_json(file):
         return data
 
 
+def load_npy(filename):
+    return np.load(filename)
+
+
 def get_filter_video_names(video_info_file, gt_len_thres=0.98):
     """
     Select video according to length of ground truth
@@ -28,8 +32,7 @@ def get_filter_video_names(video_info_file, gt_len_thres=0.98):
     video_lists = list(json_data)
     for video_name in video_lists:
         video_info = json_data[video_name]
-        if video_info['subset'] != "training":
-            continue
+        load_npy(os.path.join("{}.npy".format(video_name)))
         video_second = video_info["duration"]
         gt_lens = []
         video_labels = video_info["annotations"]
@@ -329,3 +332,7 @@ def save_proposals_result(batch_video_list,
             """ write csv file 
             """
             tmp_df.to_csv(os.path.join(result_dir, tmp_video + '.csv'), index=False)
+
+
+if __name__ == '__main__':
+    get_filter_video_names("../../../data/train_annotations.json")

@@ -3,9 +3,6 @@
 
 import torch
 from torch.utils.data import Dataset
-
-'''
-DBG
 import torch
 from torch.utils.data import Dataset
 
@@ -251,3 +248,4 @@ class ProposalDataSet(data.Dataset):
             video_xmin_score = pdf.xmin_score.values[:]
             video_xmax_score = pdf.xmax_score.values[:]
             return video_feature, video_xmin, video_xmax, video_xmin_score, video_xmax_score
+'''

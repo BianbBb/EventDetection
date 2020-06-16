@@ -32,7 +32,7 @@ def check_folder(train_folder, valid_folder):
 
 def split_dataset(raw_folder, train_folder, valid_folder, train_split=0.8):
     raw_train_folder = os.path.join(raw_folder, 'train', "i3d")
-    f = open("../../data/train_annotations.json", 'r')
+    f = open("../../data/Tianchi/train_annotations.json", 'r')
     content = f.readline()  # this file only one line
     annotation = json.loads(content)
     # total_size = len(annotation)
