@@ -28,10 +28,12 @@ class DBGDataSet(Dataset):
         training = True
         if mode == 'training':
             video_dict = train_dict
+            # video_dict = dict(list(video_dict.items())[:50]) # TODO：delete this line
 
         else:
             training = False
             video_dict = val_dict
+            # video_dict = dict(list(video_dict.items())[:50])  # TODO：delete this line
 
         self.mode = mode
         self.video_dict = video_dict
