@@ -269,7 +269,7 @@ if __name__ == '__main__':
 
     # train DBG
     for i in range(epoch_num):
-        scheduler.step(i)
-        print('current learning rate:', scheduler.get_lr()[0])
+        print('current learning rate:', scheduler.get_last_lr()[0])
         DBG_train(net, train_dl, optimizer, i, training=True)
         DBG_train(net, val_dl, optimizer, i, training=False)
+        scheduler.step()

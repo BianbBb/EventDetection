@@ -22,8 +22,8 @@ def sample(feature, new_n=100):
 
 
 if __name__ == '__main__':
-    old_dir = '/data/byh/EventDetection/train/i3d/'
-    new_dir = '/data/byh/EventDetection/train/i3d_400/'
+    old_dir = '/data/byh/EventDetection/test/i3d/'
+    new_dir = '/data/byh/EventDetection/test/i3d_400/'
     if not os.path.exists(new_dir):
         os.makedirs(new_dir)
 

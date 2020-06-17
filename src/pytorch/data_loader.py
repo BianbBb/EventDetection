@@ -28,11 +28,11 @@ class DBGDataSet(Dataset):
         training = True
         if mode == 'training':
             video_dict = train_dict
-            video_dict = dict(list(video_dict.items())[:50])# TODO：delete this line
 
         else:
             training = False
             video_dict = val_dict
+
         self.mode = mode
         self.video_dict = video_dict
 
@@ -51,10 +51,6 @@ class DBGDataSet(Dataset):
 
         # transform data to torch tensor
         for key in list(data_dict.keys()):
-            print(key)
-            print(len(data_dict[key])) ###
-            print(data_dict[key][0])
-            print(np.shape(data_dict[key][0]))
 
             data_dict[key] = torch.Tensor(data_dict[key]).float()
         self.data_dict = data_dict
