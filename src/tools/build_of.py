@@ -1,4 +1,3 @@
-
 import os
 import glob
 import sys
@@ -6,6 +5,7 @@ from pipes import quote
 from multiprocessing import Pool, current_process
 import pdb
 import argparse
+
 out_path = ''
 
 
@@ -21,7 +21,7 @@ def dump_frames(vid_path):
     except OSError:
         pass
     file_list = []
-    for i in xrange(fcount):
+    for i in range(fcount):
         ret, frame = video.read()
         assert ret
         cv2.imwrite('{}/{:06d}.jpg'.format(out_full_path, i), frame)
@@ -48,8 +48,10 @@ def run_optical_flow(vid_item, dev_id=0):
     flow_x_path = '{}/flow_x'.format(out_full_path)
     flow_y_path = '{}/flow_y'.format(out_full_path)
 
-    cmd = os.path.join(df_path + 'build/extract_gpu')+' -f {} -x {} -y {} -i {} -b 20 -t 1 -d {} -s 1 -o {} -w {} -h {}'.format(
-        quote(vid_path), quote(flow_x_path), quote(flow_y_path), quote(image_path), dev_id, out_format, new_size[0], new_size[1])
+    cmd = os.path.join(
+        df_path + 'build/extract_gpu') + ' -f {} -x {} -y {} -i {} -b 20 -t 1 -d {} -s 1 -o {} -w {} -h {}'.format(
+        quote(vid_path), quote(flow_x_path), quote(flow_y_path), quote(image_path), dev_id, out_format, new_size[0],
+        new_size[1])
 
     os.system(cmd)
     print('{} {} done'.format(vid_id, vid_name))
@@ -72,7 +74,7 @@ def run_warp_optical_flow(vid_item, dev_id=0):
     flow_x_path = '{}/flow_x'.format(out_full_path)
     flow_y_path = '{}/flow_y'.format(out_full_path)
 
-    cmd = os.path.join(df_path + 'build/extract_warp_gpu')+' -f {} -x {} -y {} -b 20 -t 1 -d {} -s 1 -o {}'.format(
+    cmd = os.path.join(df_path + 'build/extract_warp_gpu') + ' -f {} -x {} -y {} -b 20 -t 1 -d {} -s 1 -o {}'.format(
         vid_path, flow_x_path, flow_y_path, dev_id, out_format)
 
     os.system(cmd)
@@ -80,9 +82,11 @@ def run_warp_optical_flow(vid_item, dev_id=0):
     sys.stdout.flush()
     return True
 
+
 def nonintersection(lst1, lst2):
     lst3 = [value for value in lst1 if ((value.split("/")[-1]).split(".")[0]) not in lst2]
     return lst3
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="extract optical flows")
@@ -91,13 +95,15 @@ if __name__ == '__main__':
     parser.add_argument("--num_worker", type=int, default=8)
     parser.add_argument("--flow_type", type=str, default='tvl1', choices=['tvl1', 'warp_tvl1'])
     parser.add_argument("--df_path", type=str, default='./lib/dense_flow/', help='path to the dense_flow toolbox')
-    parser.add_argument("--out_format", type=str, default='zip', choices=['dir','zip'],
+    parser.add_argument("--out_format", type=str, default='zip', choices=['dir', 'zip'],
                         help='path to the dense_flow toolbox')
-    parser.add_argument("--ext", type=str, default='webm', choices=['avi','mp4', 'mkv', 'webm'], help='video file extensions')
+    parser.add_argument("--ext", type=str, default='webm', choices=['avi', 'mp4', 'mkv', 'webm'],
+                        help='video file extensions')
     parser.add_argument("--new_width", type=int, default=0, help='resize image width')
     parser.add_argument("--new_height", type=int, default=0, help='resize image height')
     parser.add_argument("--num_gpu", type=int, default=8, help='number of GPU')
-    parser.add_argument("--resume", type=str, default='no', choices=['yes','no'], help='resume optical flow extraction instead of overwriting')
+    parser.add_argument("--resume", type=str, default='no', choices=['yes', 'no'],
+                        help='resume optical flow extraction instead of overwriting')
 
     args = parser.parse_args()
 
@@ -112,19 +118,19 @@ if __name__ == '__main__':
     NUM_GPU = args.num_gpu
     resume = args.resume
     if not os.path.isdir(out_path):
-        print("creating folder: "+out_path)
+        print("creating folder: " + out_path)
         os.makedirs(out_path)
     print("reading videos from folder: ", src_path)
 
     print("selected extension of videos: mp4, mkv, webm")
-    vid_list = glob.glob(src_path+'/*.mp4')
-    vid_list.extend(glob.glob(src_path+'/*.mkv'))
-    vid_list.extend(glob.glob(src_path+'/*.webm'))
+    vid_list = glob.glob(src_path + '/*.mp4')
+    vid_list.extend(glob.glob(src_path + '/*.mkv'))
+    vid_list.extend(glob.glob(src_path + '/*.webm'))
     print("total number of videos found: ", len(vid_list))
-    if(resume == 'yes'):
+    if (resume == 'yes'):
         com_vid_list = os.listdir(out_path)
         vid_list = nonintersection(vid_list, com_vid_list)
-        print("resuming from video: ", vid_list[0]) 
+        print("resuming from video: ", vid_list[0])
     pool = Pool(num_worker)
     if flow_type == 'tvl1':
         pool.map(run_optical_flow, zip(vid_list, range(len(vid_list))))
