@@ -145,8 +145,7 @@ def getProposalDataTest(video_list, dbg_config):
         batch_anchor_xmin.append(list(tmp_anchor_xmin))
         batch_anchor_xmax.append(list(tmp_anchor_xmax))
 
-        tmp_df = pd.read_csv(os.path.join(data_dir, video_name + ".csv"))
-        video_feat = tmp_df.values[:, :]
+        video_feat = load_feature(data_dir, video_name)
 
         batch_anchor_feature.append(video_feat)
     batch_anchor_xmin = np.array(batch_anchor_xmin)
