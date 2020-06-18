@@ -9,6 +9,7 @@ import pandas as pd
 import tqdm
 
 from utils import getDatasetDict
+from config_loader import dbg_config
 
 """ Define parser """
 parser = argparse.ArgumentParser()
@@ -132,7 +133,8 @@ def sub_processor(lock, pid, video_list):
     with lock:
         progress.close()
 
-video_info_file = 'data/video_info_19993.json'
+
+video_info_file = dbg_config.video_info_file
 train_dict, val_dict, test_dict = getDatasetDict(video_info_file)
 mode = args.mode
 if mode == 'validation':
