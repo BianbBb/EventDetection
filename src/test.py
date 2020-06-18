@@ -1,6 +1,3 @@
-import sys
-
-sys.path.append('.')
 import os
 
 import numpy as np
@@ -9,7 +6,6 @@ import tqdm
 import data_loader
 import utils.util as util
 from model import DBG
-from config_loader import dbg_config
 
 import torch
 import torch.nn as nn
@@ -62,7 +58,10 @@ if __name__ == "__main__":
         net.eval()
 
         """ get testing dataset """
-        train_dict, val_dict, test_dict = data_loader.getDatasetDict(dbg_config.video_info_file)
+        if dbg_config.dataset_name == 'activitynet':
+            train_dict, val_dict, test_dict = data_loader.getDatasetDict(dbg_config.video_info_file)
+        elif dbg_config.dataset_name == 'tianchi':
+
         if test_mode == 'validation':
             video_dict = val_dict
         else:
@@ -106,3 +105,4 @@ if __name__ == "__main__":
                                     batch_result_pstart,
                                     batch_result_pend,
                                     tscale, result_dir)
+

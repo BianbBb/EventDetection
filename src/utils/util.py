@@ -4,6 +4,8 @@ import os
 import numpy as np
 import pandas as pd
 import tqdm
+import sys
+sys.path.append('..')
 from config_loader import dbg_config
 
 def load_json(file):
@@ -343,3 +345,13 @@ def save_proposals_result(batch_video_list,
             """ write csv file 
             """
             tmp_df.to_csv(os.path.join(result_dir, tmp_video + '.csv'), index=False)
+
+def read_test_list(filename):
+    with open(filename,'r') as f:
+        lines=f.readlines()
+        test_list = []
+        for line in lines:
+            print(line)
+
+if __name__ == '__main__':
+    read_test_list(dbg_config.test_info_file)

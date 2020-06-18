@@ -1,29 +1,17 @@
 import torch
 from torch.utils.data import Dataset
-
-from config_loader import dbg_config
-from utils.util import *
+from utils.util import getDatasetDict, getFullData
 import numpy as np
 
-""" Load config"""
-""" get input feature temporal scale """
-tscale = dbg_config.tscale
-tgap = 1.0 / tscale
-""" get video information json file path """
-video_info_file = dbg_config.video_info_file
-""" set filter videos or not """
-video_filter = dbg_config.video_filter
-""" get feature directory """
-data_dir = dbg_config.feat_dir
-""" set data augmentation or not """
-data_aug = dbg_config.data_aug
 
+class MyDataSet(Dataset):
 
-class DBGDataSet(Dataset):
-    """
-    DBG dataset to load ActivityNet-1.3 data
-    """
-    def __init__(self, mode='training'):
+    def __init__(self, config, mode='training'):
+        tgap = 1.0 / config.tscale
+        video_info_file = config.video_info_file
+        video_filter = config.video_filter
+        data_dir = config.feat_dir
+        data_aug = config.data_aug
         train_dict, val_dict, test_dict = getDatasetDict(video_info_file, video_filter)
         training = True
         if mode == 'training':
@@ -44,16 +32,12 @@ class DBGDataSet(Dataset):
 
         # load raw data
         if training:
-            data_dict, train_video_mean_len = getFullData(video_dict, dbg_config,
-                                                          last_channel=False,
-                                                          training=True)
+            data_dict, train_video_mean_len = getFullData(video_dict, config, last_channel=False, training=True)
         else:
-            data_dict = getFullData(video_dict, dbg_config,
-                                    last_channel=False, training=False)
+            data_dict = getFullData(video_dict, config, last_channel=False, training=False)
 
         # transform data to torch tensor
         for key in list(data_dict.keys()):
-
             data_dict[key] = torch.Tensor(data_dict[key]).float()
         self.data_dict = data_dict
 

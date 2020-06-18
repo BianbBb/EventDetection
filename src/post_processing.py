@@ -124,6 +124,7 @@ def sub_processor(lock, pid, video_list):
             tmp_proposal["score"] = df.score.values[j]
             tmp_proposal["segment"] = [max(0, df.xmin.values[j]) * video_duration,
                                        min(1, df.xmax.values[j]) * video_duration]
+            tmp_proposal["label"] = "驾驶汽车" # TODO:label
             proposal_list.append(tmp_proposal)
         result_dict[video_name[2:]] = proposal_list
         with lock:
@@ -167,7 +168,8 @@ for p in processes:
 
 """ Save result json file """
 result_dict = dict(result_dict)
-output_dict = {"version": "VERSION 1.3", "results": result_dict, "external_data": {}}
+#output_dict = {"version": "VERSION 1.3", "results": result_dict, "external_data": {}}
+
 
 with open(args.output_file, 'w') as outfile:
-    json.dump(output_dict, outfile)
+    json.dump(result_dict, outfile)
