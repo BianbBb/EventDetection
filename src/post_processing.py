@@ -15,8 +15,8 @@ config = Config()
 
 """ Define parser """
 parser = argparse.ArgumentParser()
-parser.add_argument('-i', '--input_dir', type=str)
-parser.add_argument('-o', '--output_file', type=str)
+parser.add_argument('-i', '--input_dir', type=str, default="../results/result")
+parser.add_argument('-o', '--output_file', type=str, default="../results/rst.json")
 parser.add_argument('top_number', type=int, nargs='?', default=100)
 parser.add_argument('-t', '--thread', type=int, nargs='?', default=8)
 parser.add_argument('-m', '--mode', type=str, nargs='?', default='testing')
@@ -174,7 +174,6 @@ if __name__ == '__main__':
 
     """ Save result json file """
     result_dict = dict(result_dict)
-    # output_dict = {"version": "VERSION 1.3", "results": result_dict, "external_data": {}}
 
     with open(args.output_file, 'w') as outfile:
         json.dump(result_dict, outfile)

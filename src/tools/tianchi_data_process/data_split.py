@@ -69,8 +69,11 @@ def split_dataset(old_path, new_path, npy_folder, test_anno, test_folder, train_
         new_annotaions[item_id]['duration'] = get_duration(item_id, npy_folder)
 
     for item_id in tqdm(test_ids):
-        new_annotaions[item_id]['subset'] = "testing"
-        new_annotaions[item_id]['duration'] = get_duration(item_id, test_folder)
+        tmp_dict = dict()
+        tmp_dict['subset'] = "testing"
+        tmp_dict['duration'] = get_duration(item_id, test_folder)
+        tmp_dict['annotations'] = None
+        new_annotaions[item_id] = tmp_dict
     json.dump(new_annotaions, f_new)
     f_new.close()
 

@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import tqdm
 from torch.utils.data import DataLoader
+from tensorboardX import SummaryWriter
 
 from model import DBG
 from data_loader import MyDataSet
@@ -175,10 +176,11 @@ if __name__ == '__main__':
         {'params': DSBNet_weight, 'weight_decay': 2e-3},
         {'params': PFG_weight, 'weight_decay': 2e-4},
         {'params': ACR_TBC_weight, 'weight_decay': 2e-5}
-    ], lr=1.0)
+    ], lr=0.1)
 
     # setup learning rate scheduler
-    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer_, lambda x: learning_rate[x])
+    # scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer_, lambda x: learning_rate[x])
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer_, step_size=50, gamma=0.1)
     # setup training and validation data loader
     train_dl = DataLoader(MyDataSet(config, mode='training'), batch_size=batch_size,
                           shuffle=True, num_workers=0, drop_last=True, pin_memory=True)

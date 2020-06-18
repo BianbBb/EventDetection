@@ -6,6 +6,7 @@ runs/
 logs/
 pretrained_model/
 model*/
+results/
 
 
 # file

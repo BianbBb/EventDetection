@@ -81,8 +81,6 @@ def getDatasetDict(config, video_info_file, video_filter=False):
         elif video_subset == "testing":
             test_dict[video_name] = video_new_info
 
-        if config.dataset_name == 'tianchi':
-            test_dict = read_test_list(config.test_info_file)
     return train_dict, val_dict, test_dict
 
 
@@ -337,10 +335,4 @@ def save_proposals_result(batch_video_list,
             """
             tmp_df.to_csv(os.path.join(result_dir, tmp_video + '.csv'), index=False)
 
-
-def read_test_list(filename):
-    with open(filename, 'r') as f:
-        lines = list(map(lambda x: x.strip().replace('\n', ''), f.readlines()))
-    val_dict = dict(zip(lines, [None for i in range(len(lines))]))
-    return val_dict
 
