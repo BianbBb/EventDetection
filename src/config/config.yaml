@@ -1,4 +1,5 @@
 dataset:
+  dataset_name: tianchi # activitynet thumos
   video_info_file: ../data/Tianchi/train_annotations_new.json # data/video_info_19993.json
   feat_dir: /data/byh/EventDetection/train/i3d_400/ # data/tsn_anet200/all_csv_mean_100/
   #  video_info_file: data/video_info_19993.json
@@ -16,9 +17,9 @@ saver:
 training:
   learning_rate: [1e-3, 1e-4]
   lr_epochs: [8, 4]
-  batch_size: 2
+  batch_size: 16
 
 testing:
   mode: validation
   # mode: testing
-  batch_size: 2
+  batch_size: 16

@@ -4,7 +4,7 @@ import os
 import numpy as np
 import pandas as pd
 import tqdm
-
+from config_loader import dbg_config
 
 def load_json(file):
     """
@@ -84,6 +84,9 @@ def getDatasetDict(video_info_file, video_filter=False):
             val_dict[video_name] = video_new_info
         elif video_subset == "testing":
             test_dict[video_name] = video_new_info
+
+        if dbg_config.dataset_name == 'tianchi':
+            test_dict = val_dict
     return train_dict, val_dict, test_dict
 
 

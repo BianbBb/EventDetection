@@ -30,6 +30,7 @@ class DBGConfig():
         self.video_info_file = dataset_info['video_info_file']
         self.data_aug = dataset_info['data_aug']
         self.feature_dim = dataset_info['feature_dim']
+        self.dataset_name = dataset_info['dataset_name']
 
         """ Set model and results paths """
         saver_info = data['saver']
