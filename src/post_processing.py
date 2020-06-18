@@ -8,13 +8,12 @@ import numpy as np
 import pandas as pd
 import tqdm
 
-from utils import getDatasetDict
-from config_loader import dbg_config
+from utils.util import getDatasetDict
 
 """ Define parser """
 parser = argparse.ArgumentParser()
-parser.add_argument('input_dir', type=str)
-parser.add_argument('output_file', type=str)
+parser.add_argument('-i', '--input_dir', type=str)
+parser.add_argument('-o', '--output_file', type=str)
 parser.add_argument('top_number', type=int, nargs='?', default=100)
 parser.add_argument('-t', '--thread', type=int, nargs='?', default=8)
 parser.add_argument('-m', '--mode', type=str, nargs='?', default='validation')
@@ -133,8 +132,8 @@ def sub_processor(lock, pid, video_list):
     with lock:
         progress.close()
 
-
-video_info_file = dbg_config.video_info_file
+#video_info_file = 'data/video_info_19993.json'
+video_info_file = '../data/Tianchi/train_annotations_new.json'
 train_dict, val_dict, test_dict = getDatasetDict(video_info_file)
 mode = args.mode
 if mode == 'validation':
