@@ -1,12 +1,9 @@
 import json
 import os
-
 import numpy as np
 import pandas as pd
 import tqdm
-import sys
-sys.path.append('..')
-from config_loader import dbg_config
+
 
 def load_json(file):
     """
@@ -17,13 +14,14 @@ def load_json(file):
         data = json.load(json_file)
         return data
 
-def load_feature(dir, file):
+
+def load_feature(folder, file):
     # for DBG on ActivityNet
-    # tmp_df = pd.read_csv(os.path.join(dir, file + '.csv'))
+    # tmp_df = pd.read_csv(os.path.join(folder, file + '.csv'))
     # video_feat = tmp_df.values[:, :]
 
     # for TianChi dataset
-    video_feat = np.load(os.path.join(dir, "{}.npy".format(file)))
+    video_feat = np.load(os.path.join(folder, "{}.npy".format(file)))
     return video_feat
 
 
@@ -59,13 +57,9 @@ def get_filter_video_names(video_info_file, gt_len_thres=0.98):
     return filter_video_names
 
 
-def getDatasetDict(video_info_file, video_filter=False):
-    """Load dataset file
-    """
+def getDatasetDict(config, video_info_file, video_filter=False):
     json_data = load_json(video_info_file)
-
-    # load filter video name
-    filter_video_names = get_filter_video_names(video_info_file)
+    filter_video_names = get_filter_video_names(video_info_file) # load filter video name
 
     database = json_data
     train_dict = {}
@@ -76,7 +70,7 @@ def getDatasetDict(video_info_file, video_filter=False):
         if video_filter and video_name in filter_video_names:
             continue
         video_info = database[video_name]
-        video_new_info = {}
+        video_new_info = dict()
         video_new_info["duration_second"] = video_info["duration"]
         video_subset = video_info['subset']
         video_new_info["annotations"] = video_info["annotations"]
@@ -87,8 +81,8 @@ def getDatasetDict(video_info_file, video_filter=False):
         elif video_subset == "testing":
             test_dict[video_name] = video_new_info
 
-        if dbg_config.dataset_name == 'tianchi':
-            test_dict = val_dict
+        if config.dataset_name == 'tianchi':
+            test_dict = read_test_list(config.test_info_file)
     return train_dict, val_dict, test_dict
 
 
@@ -130,12 +124,10 @@ def gen_mask(tscale):
     return mask
 
 
-def getProposalDataTest(video_list, dbg_config):
-    """Load data during testing
-    """
-    tscale = dbg_config.tscale
+def getProposalDataTest(video_list, config):
+    tscale = config.tscale
     tgap = 1.0 / tscale
-    data_dir = dbg_config.feat_dir
+    data_dir = config.test_dir
 
     batch_anchor_xmin = []
     batch_anchor_xmax = []
@@ -308,10 +300,9 @@ def save_proposals_result(batch_video_list,
                           batch_result_iou,
                           batch_result_pstart,
                           batch_result_pend,
-                          tscale, result_dir):
-    """ Save proposal results to csv files
-    """
-    print('Saving results ...')
+                          tscale,
+                          result_dir):
+    print('Saving results in', result_dir)
     columns = ["iou", "start", "end", "xmin", "xmax"]
     """for each batch video list
     """
@@ -346,12 +337,10 @@ def save_proposals_result(batch_video_list,
             """
             tmp_df.to_csv(os.path.join(result_dir, tmp_video + '.csv'), index=False)
 
-def read_test_list(filename):
-    with open(filename,'r') as f:
-        lines=f.readlines()
-        test_list = []
-        for line in lines:
-            print(line)
 
-if __name__ == '__main__':
-    read_test_list(dbg_config.test_info_file)
+def read_test_list(filename):
+    with open(filename, 'r') as f:
+        lines = list(map(lambda x: x.strip().replace('\n', ''), f.readlines()))
+    val_dict = dict(zip(lines, [None for i in range(len(lines))]))
+    return val_dict
+

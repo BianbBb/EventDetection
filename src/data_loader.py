@@ -12,7 +12,7 @@ class MyDataSet(Dataset):
         video_filter = config.video_filter
         data_dir = config.feat_dir
         data_aug = config.data_aug
-        train_dict, val_dict, test_dict = getDatasetDict(video_info_file, video_filter)
+        train_dict, val_dict, test_dict = getDatasetDict(config, video_info_file, video_filter)
         training = True
         if mode == 'training':
             video_dict = train_dict

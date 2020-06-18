@@ -1,5 +1,6 @@
 import os
 import random
+import warnings
 
 import numpy as np
 import torch
@@ -13,6 +14,8 @@ from utils.util import gen_mask
 from utils.parse_yaml import Config
 from losses import binary_logistic_loss, IoU_loss
 
+
+warnings.filterwarnings('ignore')
 config = Config()
 
 checkpoint_dir = config.checkpoint_dir
@@ -32,15 +35,6 @@ tmp_mask = tmp_mask > 0
 
 
 def train(net, dl_iter, optimizer, epoch, training):
-    """
-    One epoch of runing DBG model
-    :param net: DBG network module
-    :param dl_iter: data loader
-    :param optimizer: optimizer module
-    :param epoch: current epoch number
-    :param training: bool, training or not
-    :return: None
-    """
     if training:
         net.train()
     else:
@@ -50,8 +44,7 @@ def train(net, dl_iter, optimizer, epoch, training):
     loss_start_val = 0
     loss_end_val = 0
     cost_val = 0
-    for n_iter, \
-        (gt_action, gt_start, gt_end, feature, iou_label) in tqdm.tqdm(enumerate(dl_iter)):
+    for n_iter, (gt_action, gt_start, gt_end, feature, iou_label) in tqdm.tqdm(enumerate(dl_iter)):
         gt_action = gt_action.cuda()
         gt_start = gt_start.cuda()
         gt_end = gt_end.cuda()
@@ -67,15 +60,13 @@ def train(net, dl_iter, optimizer, epoch, training):
         prop_end = output_dict['prop_end']
 
         # calculate action loss
-        loss_action = binary_logistic_loss(gt_action, x1) + \
-                      binary_logistic_loss(gt_action, x2) + \
-                      binary_logistic_loss(gt_action, x3)
+        loss_action = binary_logistic_loss(gt_action, x1) + binary_logistic_loss(gt_action, x2) + binary_logistic_loss(gt_action, x3)
         loss_action /= 3.0
 
         # calculate IoU loss
         iou_losses = 0.0
         for i in range(batch_size):
-            iou_loss = IoU_loss(iou_label[i:i + 1], iou[i:i + 1])
+            iou_loss = IoU_loss(iou_label[i:i + 1], iou[i:i + 1], mask)
             iou_losses += iou_loss
         loss_iou = iou_losses / batch_size * 10.0
 
@@ -123,11 +114,11 @@ def train(net, dl_iter, optimizer, epoch, training):
             % (epoch, cost_val, loss_action_val, loss_start_val, loss_end_val, loss_iou_val))
 
         torch.save(net.module.state_dict(),
-                   os.path.join(checkpoint_dir, 'DBG_checkpoint-%d.ckpt' % epoch))
+                   os.path.join(checkpoint_dir, 'checkpoint-%d.pth' % epoch))
         if cost_val < net.module.best_loss:
             net.module.best_loss = cost_val
             torch.save(net.module.state_dict(),
-                       os.path.join(checkpoint_dir, 'DBG_checkpoint_best.ckpt'))
+                       os.path.join(checkpoint_dir, 'checkpoint_best.pth'))
 
 
 def set_seed(seed):
@@ -147,39 +138,39 @@ def set_seed(seed):
 
 if __name__ == '__main__':
     if not torch.cuda.is_available():
-        print('Only train on GPU.')
+        print('Only train on CPU.')
         exit()
     torch.backends.cudnn.enabled = False # set False to speed up Conv3D operation
     set_seed(2020)
-    net = DBG(feature_dim)
-    net = nn.DataParallel(net, device_ids=[0]).cuda()
+    model = DBG(feature_dim)
+    model = nn.DataParallel(model, device_ids=[0]).cuda()
 
     # set weight decay for different parameters
     Net_bias = []
-    for name, p in net.module.named_parameters():
+    for name, p in model.module.named_parameters():
         if 'bias' in name:
             Net_bias.append(p)
 
     DSBNet_weight = []
-    for name, p in net.module.DSBNet.named_parameters():
+    for name, p in model.module.DSBNet.named_parameters():
         if 'bias' not in name:
             DSBNet_weight.append(p)
 
     PFG_weight = []
-    for name, p in net.module.PropFeatGen.named_parameters():
+    for name, p in model.module.PropFeatGen.named_parameters():
         if 'bias' not in name:
             PFG_weight.append(p)
 
     ACR_TBC_weight = []
-    for name, p in net.module.ACRNet.named_parameters():
+    for name, p in model.module.ACRNet.named_parameters():
         if 'bias' not in name:
             ACR_TBC_weight.append(p)
-    for name, p in net.module.TBCNet.named_parameters():
+    for name, p in model.module.TBCNet.named_parameters():
         if 'bias' not in name:
             ACR_TBC_weight.append(p)
 
     # setup Adam optimizer
-    optimizer = torch.optim.Adam([
+    optimizer_ = torch.optim.Adam([
         {'params': Net_bias, 'weight_decay': 0},
         {'params': DSBNet_weight, 'weight_decay': 2e-3},
         {'params': PFG_weight, 'weight_decay': 2e-4},
@@ -187,7 +178,7 @@ if __name__ == '__main__':
     ], lr=1.0)
 
     # setup learning rate scheduler
-    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lambda x: learning_rate[x])
+    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer_, lambda x: learning_rate[x])
     # setup training and validation data loader
     train_dl = DataLoader(MyDataSet(config, mode='training'), batch_size=batch_size,
                           shuffle=True, num_workers=0, drop_last=True, pin_memory=True)
@@ -197,6 +188,6 @@ if __name__ == '__main__':
     # train DBG
     for i in range(epoch_num):
         print('current learning rate:', scheduler.get_last_lr()[0])
-        train(net, train_dl, optimizer, i, training=True)
-        train(net, val_dl, optimizer, i, training=False)
-        scheduler.step()
+        train(model, train_dl, optimizer_, i, training=True)
+        train(model, val_dl, optimizer_, i, training=False)
+        scheduler.step(i)

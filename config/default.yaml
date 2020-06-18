@@ -4,6 +4,7 @@ dataset:
     feat_dir: /data/byh/EventDetection/train/i3d_400/
     video_info_file: ../data/Tianchi/train_annotations_new.json
     test_info_file: ../data/Tianchi/val_video_ids.txt
+    test_dir: /data/byh/EventDetection/test/i3d_400/
     video_filter: true
     data_aug: true
     tscale: 100
@@ -27,9 +28,9 @@ dataset:
     tscale: 100
     feature_dim: 400
 saver:
-  root_dir: ../output
+  root_dir: ../exp
   checkpoint_dir: model
-  result_dir: result
+  result_dir: ../results/result
 
 training:
   learning_rate: [1e-3, 1e-4]

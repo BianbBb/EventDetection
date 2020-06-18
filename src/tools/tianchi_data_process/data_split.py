@@ -6,16 +6,13 @@ Date: 2020/6/9
 Desc: split data
 """
 import os
-import shutil
-import sys
 import json
 
+from tqdm import tqdm
 import numpy as np
-import pandas as pd
 
 np.random.seed(2020)
 
-sys.path.append("../utils/")
 
 def check_folder(train_folder, valid_folder):
     """
@@ -31,10 +28,17 @@ def check_folder(train_folder, valid_folder):
 
 
 def get_duration(video_id, folder):
-    return( len(np.load(os.path.join(folder,"{}.npy".format(video_id) ))) *8 /15 )
+    return len(np.load(os.path.join(folder, "{}.npy".format(video_id)))) * 8 / 15
 
 
-def split_dataset(raw_folder, old_path, new_path, npy_folder, train_split=0.8):
+def read_test_list(filename):
+    with open(filename, 'r') as f:
+        lines = list(map(lambda x: x.strip().replace('\n', ''), f.readlines()))
+
+    return lines
+
+
+def split_dataset(old_path, new_path, npy_folder, test_anno, test_folder, train_split=0.8):
     f_old = open(old_path, 'r')
     content = f_old.readline()  # this file only one line
     annotations = json.loads(content)
@@ -45,7 +49,8 @@ def split_dataset(raw_folder, old_path, new_path, npy_folder, train_split=0.8):
     np.random.shuffle(raw_index)  # 随机打乱下标数组
     train_index = raw_index[:int(train_split * total_size)]  # shuffled train dataset
     valid_index = raw_index[int(train_split * total_size):]  # shuffled validation dataset
-    print("train videos num {}, valid videos num {}".format(len(train_index), len(valid_index)))
+    test_ids = read_test_list(test_anno)
+    print("train videos num {}, valid videos num {}, test videos num {}".format(len(train_index), len(valid_index), len(test_ids)))
 
     new_annotaions = annotations
     keys = list(annotations.keys())
@@ -53,21 +58,28 @@ def split_dataset(raw_folder, old_path, new_path, npy_folder, train_split=0.8):
 
     f_new = open(new_path, 'w')
 
-    for item in train_index:
+    for item in tqdm(train_index):
         item_id = keys[item]
         new_annotaions[item_id]['subset'] = 'training'
         new_annotaions[item_id]['duration'] = get_duration(item_id, npy_folder)
 
-    for item in valid_index:
+    for item in tqdm(valid_index):
         item_id = keys[item]
         new_annotaions[item_id]['subset'] = 'validation'
         new_annotaions[item_id]['duration'] = get_duration(item_id, npy_folder)
-    json.dump(new_annotaions,f_new)
+
+    for item_id in tqdm(test_ids):
+        new_annotaions[item_id]['subset'] = "testing"
+        new_annotaions[item_id]['duration'] = get_duration(item_id, test_folder)
+    json.dump(new_annotaions, f_new)
     f_new.close()
+
 
 if __name__ == '__main__':
     data_folder = "/data/byh//EventDetection/train/i3d/"
-    info_folder = "../../data/Tianchi/"
+    info_folder = "../../../data/Tianchi/"
     old_anno_path = os.path.join(info_folder, "train_annotations.json")
     new_anno_path = os.path.join(info_folder, "train_annotations_new.json")
-    split_dataset(info_folder, old_anno_path, new_anno_path,data_folder)
+    test_anno = os.path.join(info_folder, "val_video_ids.txt")
+    test_folder = "/data/byh/EventDetection/test/i3d/"
+    split_dataset(old_anno_path, new_anno_path, data_folder, test_anno, test_folder)

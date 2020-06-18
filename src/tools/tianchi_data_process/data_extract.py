@@ -10,13 +10,14 @@ import numpy as np
 import os
 from tqdm import tqdm
 
+
 def load_npy(npy_file):
     return np.load(npy_file)
 
 
 def sample(feature, new_n=100):
     old_n, dim = np.shape(feature)
-    index =np.floor(np.linspace(0,old_n-1,new_n)).reshape(-1)
+    index = np.floor(np.linspace(0, old_n - 1, new_n)).reshape(-1)
     new_feature = feature[index.astype("int")]
     return new_feature
 
@@ -33,4 +34,3 @@ if __name__ == '__main__':
         fea = load_npy(os.path.join(old_dir, filename))
         new_fea = sample(fea)
         np.save(os.path.join(new_dir, filename), new_fea)
-

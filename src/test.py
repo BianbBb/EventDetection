@@ -2,31 +2,25 @@ import os
 
 import numpy as np
 import tqdm
-
-import data_loader
-import utils.util as util
-from model import DBG
-
 import torch
 import torch.nn as nn
 
-""" set checkpoint directory """
-checkpoint_dir = dbg_config.checkpoint_dir
-""" set result directory to save all csv files """
-result_dir = dbg_config.result_dir
+from model import DBG
+from utils.util import gen_mask, getBatchListTest, getProposalDataTest, save_proposals_result, getDatasetDict
+from utils.parse_yaml import Config
+from data_loader import MyDataSet
 
-""" get input feature scale """
-tscale = dbg_config.tscale
-""" get input feature channel number """
-feature_dim = dbg_config.feature_dim
+torch.backends.cudnn.enabled = False
+config = Config()
 
-""" get testing batch size """
-batch_size = dbg_config.test_batch_size
-""" get testing mode: validation or test """
-test_mode = dbg_config.test_mode
+checkpoint_dir = config.checkpoint_dir
+result_dir = config.result_dir
+tscale = config.tscale
+feature_dim = config.feature_dim
+batch_size = config.test_batch_size
+test_mode = config.test_mode
 
-""" get map mask """
-mask = data_loader.gen_mask(tscale)
+mask = gen_mask(tscale)
 mask = np.expand_dims(np.expand_dims(mask, 0), 1)
 mask = torch.from_numpy(mask).float().requires_grad_(False).cuda()
 
@@ -47,27 +41,18 @@ Testing procedure
 5.Save proposal results (csv format)
 """
 
-if __name__ == "__main__":
-    torch.backends.cudnn.enabled = False # set False to speed up Conv3D operation
+
+def test():
     with torch.no_grad():
         """ setup DBG model and load weights """
         net = DBG(feature_dim)
-        state_dict = torch.load(os.path.join(checkpoint_dir, 'DBG_checkpoint_best.ckpt'))
+        state_dict = torch.load(os.path.join(checkpoint_dir, 'checkpoint_best.pth'))
         net.load_state_dict(state_dict)
         net = nn.DataParallel(net, device_ids=[0]).cuda()
         net.eval()
 
-        """ get testing dataset """
-        if dbg_config.dataset_name == 'activitynet':
-            train_dict, val_dict, test_dict = data_loader.getDatasetDict(dbg_config.video_info_file)
-        elif dbg_config.dataset_name == 'tianchi':
-
-        if test_mode == 'validation':
-            video_dict = val_dict
-        else:
-            video_dict = test_dict
-
-        batch_video_list = data_loader.getBatchListTest(video_dict, batch_size)
+        train_dict, val_dict, test_dict = getDatasetDict(config, config.video_info_file)
+        batch_video_list = getBatchListTest(test_dict, batch_size)
 
         batch_result_xmin = []
         batch_result_xmax = []
@@ -75,11 +60,10 @@ if __name__ == "__main__":
         batch_result_pstart = []
         batch_result_pend = []
 
-        """ runing DBG model """
         print('Runing DBG model ...')
         for idx in tqdm.tqdm(range(len(batch_video_list))):
-            batch_anchor_xmin, batch_anchor_xmax, batch_anchor_feature = \
-                data_loader.getProposalDataTest(batch_video_list[idx], dbg_config)
+            batch_anchor_xmin, batch_anchor_xmax, batch_anchor_feature = getProposalDataTest(batch_video_list[idx],
+                                                                                             config)
             in_feature = torch.from_numpy(batch_anchor_feature).float().cuda().permute(0, 2, 1)
             output_dict = net(in_feature)
             out_iou = output_dict['iou']
@@ -98,11 +82,15 @@ if __name__ == "__main__":
             batch_result_pstart.append(out_start[:, 0].cpu().detach().numpy())
             batch_result_pend.append(out_end[:, 0].cpu().detach().numpy())
 
-        util.save_proposals_result(batch_video_list,
-                                    batch_result_xmin,
-                                    batch_result_xmax,
-                                    batch_result_iou,
-                                    batch_result_pstart,
-                                    batch_result_pend,
-                                    tscale, result_dir)
+        save_proposals_result(batch_video_list,
+                              batch_result_xmin,
+                              batch_result_xmax,
+                              batch_result_iou,
+                              batch_result_pstart,
+                              batch_result_pend,
+                              tscale,
+                              result_dir)
 
+
+if __name__ == "__main__":
+    test()

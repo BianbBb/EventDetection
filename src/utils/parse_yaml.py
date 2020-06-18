@@ -27,6 +27,7 @@ class Config(object):
         self.feat_dir = dataset_info['feat_dir']
         self.video_info_file = dataset_info['video_info_file']
         self.test_info_file = dataset_info['test_info_file']
+        self.test_dir = dataset_info['test_dir']
         self.video_filter = dataset_info['video_filter']
         self.tscale = dataset_info['tscale']
         self.data_aug = dataset_info['data_aug']
@@ -36,8 +37,7 @@ class Config(object):
         saver_info = config['saver']
         root_dir = saver_info['root_dir']
         self.checkpoint_dir = os.path.join(root_dir, saver_info['checkpoint_dir'])
-        self.result_dir = os.path.join(root_dir, saver_info['result_dir'])
-        """ Make directory if not exists """
+        self.result_dir = saver_info['result_dir']
         if not os.path.exists(self.checkpoint_dir):
             os.makedirs(self.checkpoint_dir)
         if not os.path.exists(self.result_dir):
