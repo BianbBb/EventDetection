@@ -7,7 +7,7 @@ logs/
 pretrained_model/
 model*/
 results/
-
+logs/
 
 # file
 *.rar

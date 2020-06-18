@@ -18,6 +18,7 @@ from losses import binary_logistic_loss, IoU_loss
 
 warnings.filterwarnings('ignore')
 config = Config()
+torch.backends.cudnn.enabled = False
 
 checkpoint_dir = config.checkpoint_dir
 batch_size = config.batch_size
@@ -35,7 +36,7 @@ tmp_mask = mask.repeat(batch_size, 1, 1, 1).requires_grad_(False)
 tmp_mask = tmp_mask > 0
 
 
-def train(net, dl_iter, optimizer, epoch, training):
+def train(net, dl_iter, optimizer, epoch, training, writer=None):
     if training:
         net.train()
     else:
@@ -104,11 +105,21 @@ def train(net, dl_iter, optimizer, epoch, training):
     cost_val /= (n_iter + 1)
 
     if training:
+        writer.add_scalars("data/total", {'training': cost_val}, epoch)
+        writer.add_scalars("data/action", {'training': loss_action_val}, epoch)
+        writer.add_scalars("data/start", {'training': loss_start_val}, epoch)
+        writer.add_scalars("data/end", {'training': loss_end_val}, epoch)
+        writer.add_scalars("data/iou", {'training': loss_iou_val}, epoch)
         print(
             "Epoch-%d Train Loss: "
             "Total - %.05f, Action - %.05f, Start - %.05f, End - %.05f, IoU - %.05f"
             % (epoch, cost_val, loss_action_val, loss_start_val, loss_end_val, loss_iou_val))
     else:
+        writer.add_scalars("data/total", {'validation': cost_val}, epoch)
+        writer.add_scalars("data/action", {'validation': loss_action_val}, epoch)
+        writer.add_scalars("data/start", {'validation': loss_start_val}, epoch)
+        writer.add_scalars("data/end", {'validation': loss_end_val}, epoch)
+        writer.add_scalars("data/iou", {'validation': loss_iou_val}, epoch)
         print(
             "Epoch-%d Validation Loss: "
             "Total - %.05f, Action - %.05f, Start - %.05f, End - %.05f, IoU - %.05f"
@@ -140,9 +151,8 @@ def set_seed(seed):
 if __name__ == '__main__':
     if not torch.cuda.is_available():
         print('Only train on CPU.')
-        exit()
-    torch.backends.cudnn.enabled = False # set False to speed up Conv3D operation
     set_seed(2020)
+    writer = SummaryWriter(logdir="logs/")
     model = DBG(feature_dim)
     model = nn.DataParallel(model, device_ids=[0]).cuda()
 
@@ -190,6 +200,7 @@ if __name__ == '__main__':
     # train DBG
     for i in range(epoch_num):
         print('current learning rate:', scheduler.get_last_lr()[0])
-        train(model, train_dl, optimizer_, i, training=True)
-        train(model, val_dl, optimizer_, i, training=False)
+        train(model, train_dl, optimizer_, i, training=True, writer=writer)
+        train(model, val_dl, optimizer_, i, training=False, writer=writer)
         scheduler.step(i)
+    writer.close()
