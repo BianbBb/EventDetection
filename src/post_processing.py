@@ -132,8 +132,8 @@ def sub_processor(lock, pid, video_list):
     with lock:
         progress.close()
 
-#video_info_file = 'data/video_info_19993.json'
-video_info_file = '../data/Tianchi/train_annotations_new.json'
+video_info_file = 'data/video_info_19993.json'
+#video_info_file = '../data/Tianchi/train_annotations_new.json'
 train_dict, val_dict, test_dict = getDatasetDict(video_info_file)
 mode = args.mode
 if mode == 'validation':
