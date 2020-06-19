@@ -187,7 +187,7 @@ if __name__ == '__main__':
         {'params': DSBNet_weight, 'weight_decay': 2e-3},
         {'params': PFG_weight, 'weight_decay': 2e-4},
         {'params': ACR_TBC_weight, 'weight_decay': 2e-5}
-    ], lr=0.1)
+    ], lr=0.001)
 
     # setup learning rate scheduler
     # scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer_, lambda x: learning_rate[x])
