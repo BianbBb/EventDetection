@@ -29,12 +29,15 @@ dataset:
     data_aug: true
     tscale: 100
     feature_dim: 400
+
 saver:
   root_dir: ../exp
-  checkpoint_dir: model
-  result_dir: ../results/result
+  checkpoint_dir: model1 # train 生成的参数文件 以 training的 model_name+mm-dd 命名
+  result_dir: ../results/result # test 生成结果文件位置
+
 
 training:
+  model_name: DBG
   learning_rate: [1e-3, 1e-4]
   lr_epochs: [8, 4]
   epoch_num: 50
@@ -44,3 +47,4 @@ testing:
   mode: validation
   # mode: testing
   batch_size: 16
+

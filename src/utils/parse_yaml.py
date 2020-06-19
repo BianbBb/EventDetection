@@ -5,6 +5,7 @@ Desc: read yaml file
 """
 import os
 import yaml
+import time
 
 current_path = os.path.dirname(__file__)
 
@@ -36,6 +37,9 @@ class Config(object):
         """ Set model and results paths """
         saver_info = config['saver']
         root_dir = saver_info['root_dir']
+        timestamp = time.strftime('%m%d-%H%M', time.localtime())
+        checkpoint_dir = '{}-{}'.format(saver_info['model_name'], timestamp)
+        #self.checkpoint_dir = os.path.join(root_dir, checkpoint_dir ) #TODO: comment out the next line
         self.checkpoint_dir = os.path.join(root_dir, saver_info['checkpoint_dir'])
         self.result_dir = saver_info['result_dir']
         if not os.path.exists(self.checkpoint_dir):
