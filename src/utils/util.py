@@ -15,13 +15,16 @@ def load_json(file):
         return data
 
 
-def load_feature(folder, file):
-    # for DBG on ActivityNet
-    # tmp_df = pd.read_csv(os.path.join(folder, file + '.csv'))
-    # video_feat = tmp_df.values[:, :]
-
+def load_feature(config, folder, file):
+    video_feat = None
+    if config.dataset_name == 'activitynet':
+        tmp_df = pd.read_csv(os.path.join(folder, file + '.csv'))
+        video_feat = tmp_df.values[:, :]
     # for TianChi dataset
-    video_feat = np.load(os.path.join(folder, "{}.npy".format(file)))
+    elif config.dataset_name == 'tianchi':
+        video_feat = np.load(os.path.join(folder, "{}.npy".format(file)))
+    else:
+        raise TypeError
     return video_feat
 
 
@@ -59,7 +62,7 @@ def get_filter_video_names(video_info_file, gt_len_thres=0.98):
 
 def getDatasetDict(config, video_info_file, video_filter=False):
     json_data = load_json(video_info_file)
-    filter_video_names = get_filter_video_names(video_info_file) # load filter video name
+    filter_video_names = get_filter_video_names(video_info_file)  # load filter video name
 
     database = json_data
     train_dict = {}
@@ -80,7 +83,6 @@ def getDatasetDict(config, video_info_file, video_filter=False):
             val_dict[video_name] = video_new_info
         elif video_subset == "testing":
             test_dict[video_name] = video_new_info
-
     return train_dict, val_dict, test_dict
 
 
@@ -122,7 +124,7 @@ def gen_mask(tscale):
     return mask
 
 
-def getProposalDataTest(video_list, config):
+def getProposalDataTest(config, video_list):
     tscale = config.tscale
     tgap = 1.0 / tscale
     data_dir = config.test_dir
@@ -137,7 +139,7 @@ def getProposalDataTest(video_list, config):
         batch_anchor_xmin.append(list(tmp_anchor_xmin))
         batch_anchor_xmax.append(list(tmp_anchor_xmax))
 
-        video_feat = load_feature(data_dir, video_name)
+        video_feat = load_feature(config,data_dir, video_name)
 
         batch_anchor_feature.append(video_feat)
     batch_anchor_xmin = np.array(batch_anchor_xmin)
@@ -149,7 +151,7 @@ def getProposalDataTest(video_list, config):
     return batch_anchor_xmin, batch_anchor_xmax, batch_anchor_feature
 
 
-def getFullData(video_dict, dbg_config, last_channel=True, training=True):
+def getFullData(config, video_dict, dbg_config, last_channel=True, training=True):
     tscale = dbg_config.tscale
     tgap = 1.0 / tscale
     data_dir = dbg_config.feat_dir
@@ -196,7 +198,7 @@ def getFullData(video_dict, dbg_config, last_channel=True, training=True):
         tmp_anchor_xmax = [tgap * i for i in range(1, tscale + 1)]
 
         # load feature
-        video_feat = load_feature(data_dir, video_name)
+        video_feat = load_feature(config,data_dir, video_name)
 
         if not last_channel:
             video_feat = np.transpose(video_feat, [1, 0])

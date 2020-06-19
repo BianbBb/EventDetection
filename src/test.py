@@ -62,8 +62,7 @@ def test():
 
         print('Runing DBG model ...')
         for idx in tqdm.tqdm(range(len(batch_video_list))):
-            batch_anchor_xmin, batch_anchor_xmax, batch_anchor_feature = getProposalDataTest(batch_video_list[idx],
-                                                                                             config)
+            batch_anchor_xmin, batch_anchor_xmax, batch_anchor_feature = getProposalDataTest(config, batch_video_list[idx])
             in_feature = torch.from_numpy(batch_anchor_feature).float().cuda().permute(0, 2, 1)
             output_dict = net(in_feature)
             out_iou = output_dict['iou']

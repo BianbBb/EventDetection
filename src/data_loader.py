@@ -32,9 +32,9 @@ class MyDataSet(Dataset):
 
         # load raw data
         if training:
-            data_dict, train_video_mean_len = getFullData(video_dict, config, last_channel=False, training=True)
+            data_dict, train_video_mean_len = getFullData(config, video_dict, config, last_channel=False, training=True)
         else:
-            data_dict = getFullData(video_dict, config, last_channel=False, training=False)
+            data_dict = getFullData(config, video_dict, config, last_channel=False, training=False)
 
         # transform data to torch tensor
         for key in list(data_dict.keys()):
