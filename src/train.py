@@ -21,6 +21,7 @@ config = Config()
 torch.backends.cudnn.enabled = False
 
 checkpoint_dir = config.checkpoint_dir
+
 batch_size = config.batch_size
 learning_rate = config.learning_rate
 tscale = config.tscale

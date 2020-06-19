@@ -1,5 +1,6 @@
 dataset:
-  dataset_name: tianchi # activitynet thumos
+  #dataset_name: tianchi # activitynet thumos
+  dataset_name: activitynet
   tianchi:
     feat_dir: /data/byh/EventDetection/train/i3d_400/
     video_info_file: ../data/Tianchi/train_annotations_new.json
