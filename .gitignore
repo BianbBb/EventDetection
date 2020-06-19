@@ -5,7 +5,7 @@ dataset/
 runs/
 logs/
 pretrained_model/
-model/
+exp/
 results/
 logs/
 
@@ -19,3 +19,4 @@ logs/
 try*
 anet_anno_action.json
 /refer/bsn/Evaluation/
+dbg_run.txt
