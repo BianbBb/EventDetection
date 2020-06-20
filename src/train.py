@@ -112,7 +112,7 @@ def train(net, dl_iter, optimizer, epoch, training, writer=None):
         writer.add_scalars("data/end", {'training': loss_end_val}, epoch)
         writer.add_scalars("data/iou", {'training': loss_iou_val}, epoch)
         print(
-            "Epoch-%d Train Loss: "
+            "Epoch-%d Train      Loss: "
             "Total - %.05f, Action - %.05f, Start - %.05f, End - %.05f, IoU - %.05f"
             % (epoch, cost_val, loss_action_val, loss_start_val, loss_end_val, loss_iou_val))
     else:
@@ -200,7 +200,7 @@ if __name__ == '__main__':
 
     # train DBG
     for i in range(epoch_num):
-        print('current learning rate:', scheduler.get_last_lr()[0])
+        # print('current learning rate:', scheduler.get_last_lr()[0])
         train(model, train_dl, optimizer_, i, training=True, writer=writer)
         train(model, val_dl, optimizer_, i, training=False, writer=writer)
         scheduler.step(i)

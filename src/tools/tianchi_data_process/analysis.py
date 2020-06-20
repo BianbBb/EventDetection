@@ -38,14 +38,32 @@ def load_info(filename):
     return info
 
 
-def draw(info):
-    bins = np.linspace(0, max(info), 10)
+def draw(info,dataset):
+    print('max:{}'.format(max(info)))  # 448 755
 
+    bins = np.arange(0, 501, 50)
+    if dataset =='tianchi':
+        color = 'b'
+    elif dataset == 'activitynet':
+        color = 'fuchsia'
+    plt.hist(info, bins, color=color, alpha=0.5)
+
+    plt.xlabel('value')
+    plt.ylabel('count')
+    plt.title('{} duration'.format(dataset))
+
+    # plt.xlim(0, 200)  # 设置x轴分布范围
+    plt.show()
 
 if __name__ == '__main__':
-    info_file = '../../../data/Tianchi/train_annotations_new.json'
-    # info_file = '../../../data/ActivityNet/video_info_19993.json'
+    dataset_name = 'tianchi'
+    if dataset_name =='tianchi':
+        info_file = '../../../data/Tianchi/train_annotations_new.json'
+    elif dataset_name=='activitynet':
+        info_file = '../../../data/ActivityNet/video_info_19993.json'
+    elif dataset_name=='thumos':
+        info_file = None
+
     info = load_info(info_file)
     lengths,act_labels,segment_num,segment_ratio = statistic(info)
-    print(lengths)
-    draw(lengths)
+    draw(lengths,dataset_name)
