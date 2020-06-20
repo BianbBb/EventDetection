@@ -32,7 +32,7 @@ dataset:
 
 saver:
   root_dir: ../exp
-  checkpoint_dir: model1 # train 生成的参数文件 以 training的 model_name+mm-dd 命名
+  checkpoint_dir: model # train 生成的参数文件 以 training的 model_name+mm-dd 命名
   result_dir: ../results/result # test 生成结果文件位置
 
 
