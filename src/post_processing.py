@@ -16,7 +16,7 @@ config = Config()
 """ Define parser """
 parser = argparse.ArgumentParser()
 parser.add_argument('-i', '--input_dir', type=str, default="../results/result")
-parser.add_argument('-o', '--output_file', type=str, default="../results/rst_activity.json")
+parser.add_argument('-o', '--output_file', type=str, default="../results/rst_activity'.json")
 parser.add_argument('top_number', type=int, nargs='?', default=100)
 parser.add_argument('-t', '--thread', type=int, nargs='?', default=8)
 parser.add_argument('-m', '--mode', type=str, nargs='?', default='testing')
@@ -127,7 +127,7 @@ def sub_processor(lock, pid, video_list):
             tmp_proposal["score"] = df.score.values[j]
             tmp_proposal["segment"] = [max(0, df.xmin.values[j]) * video_duration,
                                        min(1, df.xmax.values[j]) * video_duration]
-            tmp_proposal["label"] = "驾驶汽车"  # TODO:label
+            # tmp_proposal["label"] = "驾驶汽车"  # TODO:label
             proposal_list.append(tmp_proposal)
         result_dict[video_name[2:]] = proposal_list
         with lock:
