@@ -16,7 +16,7 @@ config = Config()
 """ Define parser """
 parser = argparse.ArgumentParser()
 parser.add_argument('-i', '--input_dir', type=str, default="../results/result")
-parser.add_argument('-o', '--output_file', type=str, default="../results/rst.json")
+parser.add_argument('-o', '--output_file', type=str, default="../results/rst_activity.json")
 parser.add_argument('top_number', type=int, nargs='?', default=100)
 parser.add_argument('-t', '--thread', type=int, nargs='?', default=8)
 parser.add_argument('-m', '--mode', type=str, nargs='?', default='testing')

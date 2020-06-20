@@ -1,6 +1,6 @@
 dataset:
-  #dataset_name: tianchi # activitynet thumos
-  dataset_name: activitynet
+  dataset_name: tianchi # activitynet thumos
+  #dataset_name: activitynet
   tianchi:
     feat_dir: /data/byh/EventDetection/train/i3d_400/
     video_info_file: ../data/Tianchi/train_annotations_new.json
@@ -46,5 +46,5 @@ training:
 testing:
   mode: validation
   # mode: testing
-  batch_size: 16
+  batch_size: 2
 
