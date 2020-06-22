@@ -110,7 +110,7 @@ def sub_processor(lock, pid, video_list):
     for i in range(len(video_list)):
         video_name = video_list[i]
         """ Read result csv file """
-        df = pd.read_csv(os.path.join(result_dir, video_name + ".csv"))
+        df = pd.read_csv(os.path.join(config.result_dir, video_name + ".csv"))
         """ Calculate final score of proposals """
         df['score'] = df.iou.values[:] * df.start.values[:] * df.end.values[:]
         if len(df) > 1:
@@ -125,7 +125,8 @@ def sub_processor(lock, pid, video_list):
             tmp_proposal["score"] = df.score.values[j]
             tmp_proposal["segment"] = [max(0, df.xmin.values[j]) * video_duration,
                                        min(1, df.xmax.values[j]) * video_duration]
-            # tmp_proposal["label"] = "驾驶汽车"  # TODO:label
+            #tmp_proposal["label"] = "驾驶汽车"  # TODO:label
+            tmp_proposal["label"] = "Fun sliding down"
             proposal_list.append(tmp_proposal)
         result_dict[video_name[2:]] = proposal_list
         with lock:
@@ -146,7 +147,7 @@ if __name__ == '__main__':
         video_dict = test_dict
 
     results_dir = config.results_dir
-    output_file = os.poath.join(config.results_dir, "{}.json".format(config.test_pth_name))
+    output_file = os.path.join(config.results_dir, "{}.json".format(config.test_pth_name))
     video_list = list(video_dict.keys())
 
     """ Post processing using multiprocessing
@@ -173,5 +174,5 @@ if __name__ == '__main__':
     """ Save result json file """
     result_dict = dict(result_dict)
 
-    with open(args.output_file, 'w') as outfile:
+    with open(output_file, 'w') as outfile:
         json.dump(result_dict, outfile)
