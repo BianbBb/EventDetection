@@ -19,8 +19,17 @@ def read_config(config_file="../../config/default.yaml"):
     return cfg
 
 
+# TODO：修改 self.XXX 与 default.yaml 的名称相同
+# train，test，post_processing, eval 需要的路径与设置
 class Config(object):
     def __init__(self):
+
+        """ Globel Setting """
+        """ Train Setting """
+        """ Test Setting """
+        """ Post Processing Setting """
+        """ Eval Setting """
+
         config = read_config()
         ds = config['dataset']['dataset_name']
         dataset_info = config['dataset'][ds]
@@ -34,18 +43,25 @@ class Config(object):
         self.data_aug = dataset_info['data_aug']
         self.feature_dim = dataset_info['feature_dim']
 
+        """ Set testing information """
+        testing_info = config['testing']
+        self.test_mode = testing_info['mode']
+        self.test_batch_size = testing_info['batch_size']
+
+
         """ Set model and results paths """
         saver_info = config['saver']
         self.exp_dir = saver_info['exp_dir']
         timestamp = time.strftime('%m%d-%H%M', time.localtime())
         checkpoint_dir = '{}-{}-{}'.format(config['training']['model_name'], timestamp, ds)
         self.checkpoint_dir = os.path.join(self.exp_dir, checkpoint_dir)
+        self.test_pth_name = testing_info['pth_name']
         self.results_dir = saver_info['results_dir']
-        self.result_dir = os.path.join(self.results_dir, self.test_pth_name)
-        if not os.path.exists(self.checkpoint_dir):
-            os.makedirs(self.checkpoint_dir)
-        if not os.path.exists(self.result_dir):
-            os.makedirs(self.result_dir)
+        self.result_dir = os.path.join(self.results_dir, testing_info['pth_name'])
+
+
+
+
 
         """ Set training information """
         training_info = config['training']
@@ -59,8 +75,3 @@ class Config(object):
         # self.epoch_num = training_info['epoch_num']
         self.batch_size = training_info['batch_size']
 
-        """ Set testing information """
-        testing_info = config['testing']
-        self.test_mode = testing_info['mode']
-        self.test_batch_size = testing_info['batch_size']
-        self.test_pth_name = os.path.join(self.exp_dir,testing_info['pth_name'])

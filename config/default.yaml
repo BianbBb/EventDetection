@@ -45,5 +45,5 @@ training:
 testing:
   mode: validation # testing
   batch_size: 16
-  pth_name: DBG-0622-1641 # model weights
+  pth_name: DBG-0622-2111-activitynet # model weights
 
