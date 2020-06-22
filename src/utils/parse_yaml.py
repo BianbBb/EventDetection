@@ -63,3 +63,4 @@ class Config(object):
         testing_info = config['testing']
         self.test_mode = testing_info['mode']
         self.test_batch_size = testing_info['batch_size']
+        self.test_pth_file = testing_info['pth_file']
