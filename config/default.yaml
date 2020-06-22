@@ -31,8 +31,7 @@ dataset:
     feature_dim: 400
 
 saver:
-  root_dir: ../exp
-  checkpoint_dir: model # train 生成的参数文件 以 training的 model_name+mm-dd 命名
+  exp_dir: ../exp
   result_dir: ../results # test 生成结果文件位置
 
 
