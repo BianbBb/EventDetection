@@ -53,6 +53,8 @@ def test():
 
         train_dict, val_dict, test_dict = getDatasetDict(config, config.video_info_file)
 
+        if config.test_mode == 'validation':
+            test_dict = val_dict
         batch_video_list = getBatchListTest(test_dict, batch_size)
 
         batch_result_xmin = []
