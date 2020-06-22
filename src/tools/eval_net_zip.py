@@ -6,7 +6,6 @@ import cv2
 import numpy as np
 import multiprocessing
 from sklearn.metrics import confusion_matrix
-import pdb
 import pandas as pd
 
 sys.path.append('.')
@@ -51,8 +50,7 @@ video_list.sort()
 done_list = [i.replace(".csv", "") for i in os.listdir(args.save_scores)]
 evl = [i for i in video_list if i not in done_list]
 
-print
-len(evl)
+print(len(evl))
 eval_video_list = evl
 print(len(eval_video_list))
 # *****************************
