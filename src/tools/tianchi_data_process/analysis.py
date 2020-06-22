@@ -1,10 +1,13 @@
-# 三个数据集的数据分析
-# 视频长度 Segment的长度 每个Segment占视频的比例 每个视频的segment数目
+"""
+三个数据集的数据分析
+视频长度 Segment的长度 每个Segment占视频的比例 每个视频的segment数目
+"""
+
 
 import json
 import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
+
 
 def statistic(info):
     info=info
@@ -54,6 +57,7 @@ def draw(info,dataset):
 
     # plt.xlim(0, 200)  # 设置x轴分布范围
     plt.show()
+
 
 if __name__ == '__main__':
     dataset_name = 'activitynet'

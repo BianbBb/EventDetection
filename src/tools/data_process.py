@@ -6,7 +6,6 @@ import pandas as pd
 import pandas
 import numpy
 import json
-import pdb
 
 
 def resizeFeature(inputData, newSize):
@@ -122,19 +121,16 @@ for videoName in videoNameList:
     try:
         data = readData(videoName)
     except:
-        print
-        'error video {} '.format(videoName)
+        print('error video {} '.format(videoName))
         continue
     numFrame = videoAnno['duration_frame']
     featureFrame = len(data) * 16
     if featureFrame < 2:
-        print
-        'empty video {} '.format(videoName)
+        print('empty video {} '.format(videoName))
         continue
     videoAnno["feature_frame"] = featureFrame
     videoDict[videoName] = videoAnno
-    print
-    'video: {}, {}, {}'.format(videoName, numFrame, featureFrame)
+    print('video: {}, {}, {}'.format(videoName, numFrame, featureFrame))
     scale_len = 200  # len(data) # max( len(data) , 100 )
     videoFeature_mean = poolData(data, videoAnno, num_prop=scale_len, num_bin=1, num_sample_bin=3, pool_type="mean")
     outDf = pd.DataFrame(videoFeature_mean, columns=col_names)

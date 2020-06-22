@@ -3,7 +3,6 @@ import glob
 import sys
 from pipes import quote
 from multiprocessing import Pool, current_process
-import pdb
 import argparse
 
 out_path = ''
