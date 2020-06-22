@@ -139,7 +139,7 @@ def getProposalDataTest(config, video_list):
         batch_anchor_xmin.append(list(tmp_anchor_xmin))
         batch_anchor_xmax.append(list(tmp_anchor_xmax))
 
-        video_feat = load_feature(config,data_dir, video_name)
+        video_feat = load_feature(config, data_dir, video_name)
 
         batch_anchor_feature.append(video_feat)
     batch_anchor_xmin = np.array(batch_anchor_xmin)

@@ -44,7 +44,6 @@ training:
   batch_size: 16
 
 testing:
-  mode: validation
-  # mode: testing
+  mode: validation # testing
   batch_size: 16
 

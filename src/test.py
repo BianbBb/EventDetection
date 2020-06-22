@@ -52,6 +52,7 @@ def test():
         net.eval()
 
         train_dict, val_dict, test_dict = getDatasetDict(config, config.video_info_file)
+
         batch_video_list = getBatchListTest(test_dict, batch_size)
 
         batch_result_xmin = []
