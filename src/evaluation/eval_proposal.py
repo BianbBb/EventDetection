@@ -115,13 +115,13 @@ class ANETproposal(object):
         with open(proposal_filename, 'r') as fobj:
             data = json.load(fobj)
         # Checking format...
-        if not all([field in data.keys() for field in self.pred_fields]):
-            raise IOError('Please input a valid proposal file.')
+        # if not all([field in data.keys() for field in self.pred_fields]):
+        #     raise IOError('Please input a valid proposal file.')
 
         # Read predictions.
         video_lst, t_start_lst, t_end_lst = [], [], []
         score_lst = []
-        for videoid, v in data['results'].items():
+        for videoid, v in data.items():
             if videoid in self.blocked_videos:
                 continue
             for result in v:
