@@ -32,7 +32,7 @@ dataset:
 
 saver:
   exp_dir: ../exp
-  result_dir: ../results # test 生成结果文件位置
+  results_dir: ../results # test 生成结果文件位置
 
 
 training:
@@ -45,5 +45,5 @@ training:
 testing:
   mode: validation # testing
   batch_size: 16
-  pth_dir: DBG-0622-1641 # model weights
+  pth_name: DBG-0622-1641 # model weights
 

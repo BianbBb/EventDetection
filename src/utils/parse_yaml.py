@@ -40,7 +40,8 @@ class Config(object):
         timestamp = time.strftime('%m%d-%H%M', time.localtime())
         checkpoint_dir = '{}-{}-{}'.format(config['training']['model_name'], timestamp, ds)
         self.checkpoint_dir = os.path.join(self.exp_dir, checkpoint_dir)
-        self.result_dir = saver_info['result_dir']
+        self.results_dir = saver_info['results_dir']
+        self.result_dir = os.path.join(self.results_dir, self.test_pth_name)
         if not os.path.exists(self.checkpoint_dir):
             os.makedirs(self.checkpoint_dir)
         if not os.path.exists(self.result_dir):
@@ -62,4 +63,4 @@ class Config(object):
         testing_info = config['testing']
         self.test_mode = testing_info['mode']
         self.test_batch_size = testing_info['batch_size']
-        self.test_pth_dir = os.path.join(self.exp_dir,testing_info['pth_dir'])
+        self.test_pth_name = os.path.join(self.exp_dir,testing_info['pth_name'])

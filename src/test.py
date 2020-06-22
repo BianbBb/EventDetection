@@ -13,7 +13,7 @@ from data_loader import MyDataSet
 torch.backends.cudnn.enabled = False
 config = Config()
 
-pth_dir = config.test_pth_dir
+pth_name = config.test_pth_name
 
 result_dir = config.result_dir
 tscale = config.tscale
@@ -47,7 +47,7 @@ def test():
     with torch.no_grad():
         """ setup DBG model and load weights """
         net = DBG(feature_dim)
-        state_dict = torch.load(os.path.join(pth_dir, 'checkpoint_best.pth'))
+        state_dict = torch.load(os.path.join(pth_name, 'checkpoint_best.pth'))
         net.load_state_dict(state_dict)
         net = nn.DataParallel(net, device_ids=[0]).cuda()
         net.eval()

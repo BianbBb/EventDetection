@@ -13,13 +13,11 @@ from utils.parse_yaml import Config
 
 config = Config()
 
+
 """ Define parser """
 parser = argparse.ArgumentParser()
-parser.add_argument('-i', '--input_dir', type=str, default="../results/result")
-parser.add_argument('-o', '--output_file', type=str, default="../results/rst_activity'.json")
 parser.add_argument('top_number', type=int, nargs='?', default=100)
 parser.add_argument('-t', '--thread', type=int, nargs='?', default=8)
-parser.add_argument('-m', '--mode', type=str, nargs='?', default='validation')
 args = parser.parse_args()
 
 """ Number of proposal needed to keep for every video"""
@@ -147,7 +145,8 @@ if __name__ == '__main__':
     else:
         video_dict = test_dict
 
-    result_dir = args.input_dir
+    results_dir = config.results_dir
+    output_file = os.poath.join(config.results_dir, "{}.json".format(config.test_pth_name))
     video_list = list(video_dict.keys())
 
     """ Post processing using multiprocessing
