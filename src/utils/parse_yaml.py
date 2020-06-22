@@ -56,7 +56,7 @@ class Config(object):
         for lr, n in zip(learning_rate, lr_epochs):
             self.learning_rate.extend([float(lr)] * n)
         self.epoch_num = len(self.learning_rate)
-        self.epoch_num = training_info['epoch_num']
+        # self.epoch_num = training_info['epoch_num']
         self.batch_size = training_info['batch_size']
 
         """ Set testing information """
