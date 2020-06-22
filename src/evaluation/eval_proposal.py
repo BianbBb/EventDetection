@@ -72,13 +72,13 @@ class ANETproposal(object):
         with open(ground_truth_filename, 'r') as fobj:
             data = json.load(fobj)
         # Checking format
-        if not all([field in data.keys() for field in self.gt_fields]):
-            raise IOError('Please input a valid ground truth file.')
+        # if not all([field in data.keys() for field in self.gt_fields]):
+        #     raise IOError('Please input a valid ground truth file.')
 
         # Read ground truth data.
         activity_index, cidx = {}, 0
         video_lst, t_start_lst, t_end_lst, label_lst = [], [], [], []
-        for videoid, v in data['database'].items():
+        for videoid, v in data.items():
             if self.subset != v['subset']:
                 continue
             if videoid in self.blocked_videos:
