@@ -21,12 +21,8 @@ warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
 
 class ANETdetection(object):
-    GROUND_TRUTH_FIELDS = ['database']
-    PREDICTION_FIELDS = ['results']
 
     def __init__(self, ground_truth_filename=None, prediction_filename=None,
-                 ground_truth_fields=GROUND_TRUTH_FIELDS,
-                 prediction_fields=PREDICTION_FIELDS,
                  tiou_thresholds=np.linspace(0.5, 0.95, 10),
                  subset='validation', verbose=False,
                  check_status=False):
@@ -37,8 +33,6 @@ class ANETdetection(object):
         self.subset = subset
         self.tiou_thresholds = tiou_thresholds
         self.verbose = verbose
-        self.gt_fields = ground_truth_fields
-        self.pred_fields = prediction_fields
         self.ap = None
         self.check_status = check_status
         # Retrieve blocked videos from server.
@@ -78,10 +72,6 @@ class ANETdetection(object):
 
         with open(ground_truth_filename, 'r') as fobj:
             data = json.load(fobj)
-        # Checking format
-        # if not all([field in data.keys() for field in self.gt_fields]):
-        #     raise IOError('Please input a valid ground truth file.')
-
 
         # Read ground truth data.
         activity_index, cidx = {}, 0
@@ -123,10 +113,6 @@ class ANETdetection(object):
         """
         with open(prediction_filename, 'r') as fobj:
             data = json.load(fobj)
-        # Checking format...
-        '''if not all([field in data.keys() for field in self.pred_fields]):
-            raise IOError('Please input a valid prediction file.')
-        '''
         # Read predictions.
         video_lst, t_start_lst, t_end_lst = [], [], []
         label_lst, score_lst = [], []
