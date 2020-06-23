@@ -32,8 +32,8 @@ dataset:
 
 saver:
   exp_dir: ../exp
-  results_dir: ../results # test 生成结果文件位置
-
+  results_dir: ../results/result/ # test 生成结果文件位置,大量csv
+  result_dir: ../results/ # 结果json
 
 training:
   model_name: DBG

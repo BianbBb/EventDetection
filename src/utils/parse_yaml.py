@@ -47,7 +47,7 @@ class Config(object):
         testing_info = config['testing']
         self.test_mode = testing_info['mode']
         self.test_batch_size = testing_info['batch_size']
-
+        self.test_pth_name = testing_info['pth_name']
 
         """ Set model and results paths """
         saver_info = config['saver']
@@ -55,13 +55,8 @@ class Config(object):
         timestamp = time.strftime('%m%d-%H%M', time.localtime())
         checkpoint_dir = '{}-{}-{}'.format(config['training']['model_name'], timestamp, ds)
         self.checkpoint_dir = os.path.join(self.exp_dir, checkpoint_dir)
-        self.test_pth_name = testing_info['pth_name']
+        self.result_dir = saver_info['result_dir']
         self.results_dir = saver_info['results_dir']
-        self.result_dir = os.path.join(self.results_dir, testing_info['pth_name'])
-
-
-
-
 
         """ Set training information """
         training_info = config['training']

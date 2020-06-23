@@ -12,11 +12,11 @@ from data_loader import MyDataSet
 
 torch.backends.cudnn.enabled = False
 config = Config()
-if not os.path.exists(config.result_dir):
-    os.makedirs(config.result_dir)
+if not os.path.exists(config.results_dir):
+    os.makedirs(config.results_dir)
 pth_name = config.test_pth_name
 
-result_dir = config.result_dir
+results_dir = config.results_dir
 tscale = config.tscale
 feature_dim = config.feature_dim
 batch_size = config.test_batch_size
@@ -93,7 +93,7 @@ def test():
                               batch_result_pstart,
                               batch_result_pend,
                               tscale,
-                              result_dir)
+                              results_dir)
 
 
 if __name__ == "__main__":

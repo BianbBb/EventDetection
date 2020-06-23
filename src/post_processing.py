@@ -110,7 +110,7 @@ def sub_processor(lock, pid, video_list):
     for i in range(len(video_list)):
         video_name = video_list[i]
         """ Read result csv file """
-        df = pd.read_csv(os.path.join(config.result_dir, video_name + ".csv"))
+        df = pd.read_csv(os.path.join(config.results_dir, video_name + ".csv"))
         """ Calculate final score of proposals """
         df['score'] = df.iou.values[:] * df.start.values[:] * df.end.values[:]
         if len(df) > 1:
