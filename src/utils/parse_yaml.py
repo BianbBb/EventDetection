@@ -25,15 +25,11 @@ class Config(object):
     def __init__(self):
 
         """ Globel Setting """
-        """ Train Setting """
-        """ Test Setting """
-        """ Post Processing Setting """
-        """ Eval Setting """
-
         config = read_config()
-        ds = config['dataset']['dataset_name']
-        dataset_info = config['dataset'][ds]
-        self.dataset_name = ds
+
+        """ Dataset Setting """
+        self.dataset_name = config['dataset']['dataset_name']
+        dataset_info = config['dataset'][self.dataset_name]
         self.feat_dir = dataset_info['feat_dir']
         self.video_info_file = dataset_info['video_info_file']
         self.test_info_file = dataset_info['test_info_file']
@@ -43,23 +39,10 @@ class Config(object):
         self.data_aug = dataset_info['data_aug']
         self.feature_dim = dataset_info['feature_dim']
 
-        """ Set testing information """
-        testing_info = config['testing']
-        self.test_mode = testing_info['mode']
-        self.test_batch_size = testing_info['batch_size']
-        self.test_pth_name = testing_info['pth_name']
-
-        """ Set model and results paths """
-        saver_info = config['saver']
-        self.exp_dir = saver_info['exp_dir']
-        timestamp = time.strftime('%m%d-%H%M', time.localtime())
-        checkpoint_dir = '{}-{}-{}'.format(config['training']['model_name'], timestamp, ds)
-        self.checkpoint_dir = os.path.join(self.exp_dir, checkpoint_dir)
-        self.result_dir = saver_info['result_dir']
-        self.results_dir = saver_info['results_dir']
-
-        """ Set training information """
+        """ Training Setting """
         training_info = config['training']
+        self.model_name = training_info['model_name']
+
         learning_rate = training_info['learning_rate']
         lr_epochs = training_info['lr_epochs']
         assert len(learning_rate) == len(lr_epochs)
@@ -69,4 +52,35 @@ class Config(object):
         self.epoch_num = len(self.learning_rate)
         # self.epoch_num = training_info['epoch_num']
         self.batch_size = training_info['batch_size']
+
+        """ Testing Setting """
+        testing_info = config['testing']
+        self.mode = testing_info['mode']
+        self.test_batch_size = testing_info['test_batch_size']
+        self.pth_name = testing_info['pth_name']
+
+        """ Save Path Setting """
+        saver_info = config['saver']
+        self.exp_dir = saver_info['exp_dir']
+        self.results_dir = saver_info['results_dir']
+
+        # Train
+        timestamp = time.strftime('%m%d-%H%M', time.localtime())
+        train_pth_save_dir = '{}-{}-{}'.format(training_info['model_name'], timestamp, self.dataset_name)
+        self.train_pth_save_dir = os.path.join(self.exp_dir, train_pth_save_dir)
+
+        # Test
+        self.test_pth_load_dir = os.path.join(self.exp_dir, self.pth_name)
+        self.test_csv_save_dir = os.path.join(self.results_dir, '{}-{}'.format(self.pth_name, self.mode))
+
+        # Post Processing
+        self.post_csv_load_dir = self.test_csv_save_dir
+        self.post_json_save_path = os.path.join(self.results_dir, '{}-{}.json}'.format(self.pth_name, self.mode))
+
+        # eval 测评结果图表, 只能用于val dataset
+        self.eval_json_load_path = os.path.join(self.results_dir, '{}-validation.json}'.format(self.pth_name))
+
+
+
+
 

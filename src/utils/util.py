@@ -151,10 +151,10 @@ def getProposalDataTest(config, video_list):
     return batch_anchor_xmin, batch_anchor_xmax, batch_anchor_feature
 
 
-def getFullData(config, video_dict, dbg_config, last_channel=True, training=True):
-    tscale = dbg_config.tscale
+def getFullData(config, video_dict, last_channel=True, training=True):
+    tscale = config.tscale
     tgap = 1.0 / tscale
-    data_dir = dbg_config.feat_dir
+    data_dir = config.feat_dir
 
     gt_len_mode = 1
     gt_len_ratio = 2
@@ -198,7 +198,7 @@ def getFullData(config, video_dict, dbg_config, last_channel=True, training=True
         tmp_anchor_xmax = [tgap * i for i in range(1, tscale + 1)]
 
         # load feature
-        video_feat = load_feature(config,data_dir, video_name)
+        video_feat = load_feature(config, data_dir, video_name)
 
         if not last_channel:
             video_feat = np.transpose(video_feat, [1, 0])

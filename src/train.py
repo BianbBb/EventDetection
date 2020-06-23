@@ -18,11 +18,11 @@ from losses import binary_logistic_loss, IoU_loss
 
 warnings.filterwarnings('ignore')
 config = Config()
-if not os.path.exists(config.checkpoint_dir):
-    os.makedirs(config.checkpoint_dir)
+if not os.path.exists(config.train_pth_save_dir):
+    os.makedirs(config.train_pth_save_dir)
 torch.backends.cudnn.enabled = False
 
-checkpoint_dir = config.checkpoint_dir
+checkpoint_dir = config.train_pth_save_dir
 
 batch_size = config.batch_size
 learning_rate = config.learning_rate

@@ -32,8 +32,7 @@ dataset:
 
 saver:
   exp_dir: ../exp
-  results_dir: ../results/result/ # test 生成结果文件位置,大量csv
-  result_dir: ../results/ # 结果json
+  results_dir: ../results/ # 结果文件的位置
 
 training:
   model_name: DBG
@@ -43,7 +42,7 @@ training:
   batch_size: 16
 
 testing:
-  mode: validation # testing
-  batch_size: 16
-  pth_name: ../exp/DBG-0623-0938-activitynet # model weights
+  mode: validation # validation or testing
+  test_batch_size: 16
+  pth_name: DBG-0623-0938-activitynet # model weights
 
