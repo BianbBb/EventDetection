@@ -182,7 +182,6 @@ def average_recall_vs_avg_nr_proposals(ground_truth, proposals,
     # Adaptation to query faster
     ground_truth_gbvn = ground_truth.groupby('video-id')
     proposals_gbvn = proposals.groupby('video-id')
-    print(proposals_gbvn.plot())
 
     # For each video, computes tiou scores among the retrieved proposals.
     score_lst = []
@@ -219,7 +218,6 @@ def average_recall_vs_avg_nr_proposals(ground_truth, proposals,
 
         nr_proposals = np.minimum(int(this_video_proposals.shape[0] * ratio), 
             this_video_proposals.shape[0])
-        print("nr", nr_proposals)
         total_nr_proposals += nr_proposals
         this_video_proposals = this_video_proposals[:nr_proposals, :]
 

@@ -77,7 +77,6 @@ class ANETdetection(object):
         activity_index, cidx = {}, 0
         video_lst, t_start_lst, t_end_lst, label_lst = [], [], [], []
         for videoid, v in data.items():
-            # print(v)
             if self.subset != v['subset']:
                 continue
             if videoid in self.blocked_videos:
@@ -90,7 +89,6 @@ class ANETdetection(object):
                 t_start_lst.append(float(ann['segment'][0]))
                 t_end_lst.append(float(ann['segment'][1]))
                 label_lst.append(activity_index[ann['label']])
-        print(video_lst)
         ground_truth = pd.DataFrame({'video-id': video_lst,
                                      't-start': t_start_lst,
                                      't-end': t_end_lst,
@@ -126,7 +124,6 @@ class ANETdetection(object):
                 t_end_lst.append(float(result['segment'][1]))
                 label_lst.append(label)
                 score_lst.append(result['score'])
-        print(video_lst)
         prediction = pd.DataFrame({'video-id': video_lst,
                                    't-start': t_start_lst,
                                    't-end': t_end_lst,

@@ -128,7 +128,7 @@ def sub_processor(lock, pid, video_list):
             #tmp_proposal["label"] = "驾驶汽车"  # TODO:label
             tmp_proposal["label"] = "Fun sliding down"
             proposal_list.append(tmp_proposal)
-        result_dict[video_name[2:]] = proposal_list
+        result_dict[video_name] = proposal_list
         with lock:
             progress.update(1)
 
@@ -176,3 +176,4 @@ if __name__ == '__main__':
 
     with open(output_file, 'w') as outfile:
         json.dump(result_dict, outfile)
+    print("result json file saved in ", outfile)
