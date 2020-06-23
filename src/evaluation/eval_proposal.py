@@ -113,6 +113,7 @@ class ANETproposal(object):
         proposal : df
             Data frame containing the proposal instances.
         """
+
         with open(proposal_filename, 'r') as fobj:
             data = json.load(fobj)
         # Checking format...
@@ -202,6 +203,7 @@ def average_recall_vs_avg_nr_proposals(ground_truth, proposals,
     # For each video, computes tiou scores among the retrieved proposals.
     score_lst = []
     total_nr_proposals = 0
+
     for videoid in video_lst:
         # Get ground-truth instances associated to this video.
         ground_truth_videoid = ground_truth_gbvn.get_group(videoid)
