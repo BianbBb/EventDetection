@@ -36,7 +36,7 @@ def run_evaluation(ground_truth_filename, proposal_filename,
 
 eval_file = args.file_name
 
-json_name = '../data/ActivityNet/activity_net_1_3_new.json'    # ground truth json file
+# json_name = '../data/ActivityNet/activity_net_1_3_new.json'    # ground truth json file
 json_name = '../data/ActivityNet/video_info_19993.json'
 uniform_average_nr_proposals_valid, uniform_average_recall_valid, uniform_recall_valid = \
     run_evaluation(
