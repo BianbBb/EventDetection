@@ -11,11 +11,12 @@ from utils.parse_yaml import Config
 
 torch.backends.cudnn.enabled = False
 config = Config()
-if not os.path.exists(config.results_dir):
-    os.makedirs(config.results_dir)
+save_dir = config.test_csv_save_dir
+if not os.path.exists(save_dir):
+    os.makedirs(save_dir)
 pth_load_dir = config.test_pth_load_dir
 
-save_dir = config.test_csv_save_dir
+
 tscale = config.tscale
 feature_dim = config.feature_dim
 batch_size = config.test_batch_size

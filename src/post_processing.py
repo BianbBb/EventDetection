@@ -110,7 +110,7 @@ def sub_processor(lock, pid, video_list):
     for i in range(len(video_list)):
         video_name = video_list[i]
         """ Read result csv file """
-        df = pd.read_csv(os.path.join(config.results_dir, video_name + ".csv"))
+        df = pd.read_csv(os.path.join(config.post_csv_load_dir, video_name + ".csv"))
         """ Calculate final score of proposals """
         df['score'] = df.iou.values[:] * df.start.values[:] * df.end.values[:]
         if len(df) > 1:
@@ -141,13 +141,13 @@ if __name__ == '__main__':
 
     train_dict, val_dict, test_dict = getDatasetDict(config, config.video_info_file)
     print(len(test_dict.keys()))
-    if config.test_mode == 'validation':
+    if config.mode == 'validation':
         video_dict = val_dict
     else:
         video_dict = test_dict
 
-    results_dir = config.results_dir
-    output_file = os.path.join(config.result_dir, "{}.json".format(config.test_pth_name))
+    output_file = config.post_json_save_path
+    print('')
     video_list = list(video_dict.keys())
 
     """ Post processing using multiprocessing
