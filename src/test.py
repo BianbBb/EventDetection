@@ -8,7 +8,6 @@ import torch.nn as nn
 from model import DBG
 from utils.util import gen_mask, getBatchListTest, getProposalDataTest, save_proposals_result, getDatasetDict
 from utils.parse_yaml import Config
-from data_loader import MyDataSet
 
 torch.backends.cudnn.enabled = False
 config = Config()
@@ -66,6 +65,7 @@ def test():
         batch_result_pend = []
 
         print('Runing DBG model ...')
+        print("testing on {} dataset".format(config.test_mode))
         for idx in tqdm.tqdm(range(len(batch_video_list))):
             batch_anchor_xmin, batch_anchor_xmax, batch_anchor_feature = getProposalDataTest(config, batch_video_list[idx])
             in_feature = torch.from_numpy(batch_anchor_feature).float().cuda().permute(0, 2, 1)

@@ -147,7 +147,7 @@ if __name__ == '__main__':
         video_dict = test_dict
 
     results_dir = config.results_dir
-    output_file = os.path.join(config.results_dir, "{}.json".format(config.test_pth_name))
+    output_file = os.path.join(config.result_dir, "{}.json".format(config.test_pth_name))
     video_list = list(video_dict.keys())
 
     """ Post processing using multiprocessing
