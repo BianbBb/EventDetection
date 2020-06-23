@@ -17,7 +17,7 @@ def run_evaluation_proposal(ground_truth_filename, proposal_filename,
     anet_proposal = ANETproposal(ground_truth_filename, proposal_filename,
                                  tiou_thresholds=tiou_thresholds,
                                  max_avg_nr_proposals=max_avg_nr_proposals,
-                                 subset=subset, verbose=True, check_status=False)
+                                 subset=subset, verbose=False, check_status=False)
     anet_proposal.evaluate()
 
     recall = anet_proposal.recall
@@ -32,7 +32,7 @@ def run_evaluation_detection(ground_truth_filename, detection_filename,
                              subset='validation'):
     anet_detection = ANETdetection(ground_truth_filename, detection_filename,
                                    tiou_thresholds=tiou_thresholds,
-                                   subset=subset, verbose=True, check_status=False)
+                                   subset=subset, verbose=False, check_status=False)
     mAP, average_mAP = anet_detection.evaluate()
 
     return mAP, average_mAP
