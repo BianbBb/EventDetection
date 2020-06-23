@@ -10,9 +10,9 @@ import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 
-from utils_eval import get_blocked_videos
-from utils_eval import interpolated_prec_rec
-from utils_eval import segment_iou
+from .utils_eval import get_blocked_videos
+from .utils_eval import interpolated_prec_rec
+from .utils_eval import segment_iou
 
 import warnings
 
@@ -274,9 +274,3 @@ def compute_average_precision_detection(ground_truth, prediction, tiou_threshold
         ap[tidx] = interpolated_prec_rec(precision_cumsum[tidx, :], recall_cumsum[tidx, :])
 
     return ap
-
-
-if __name__ == '__main__':
-    ad = ANETdetection("../../data/ActivityNet/video_info_19993.json", "../../results/DBG-0622-2111-activitynet.json")
-    mAP, average_mAP = ad.evaluate()
-    print("mAP", mAP, "average mAP", average_mAP)

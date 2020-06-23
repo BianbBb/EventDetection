@@ -2,22 +2,14 @@ import json
 
 import numpy as np
 import pandas as pd
-from joblib import Parallel, delayed
 
-from utils_eval import get_blocked_videos
-from utils_eval import interpolated_prec_rec
-from utils_eval import segment_iou
-from utils_eval import wrapper_segment_iou
+from .utils_eval import get_blocked_videos
+from .utils_eval import wrapper_segment_iou
 
 
 class ANETproposal(object):
 
-    GROUND_TRUTH_FIELDS = ['database', 'taxonomy', 'version']
-    PROPOSAL_FIELDS = ['results', 'version', 'external_data']
-
     def __init__(self, ground_truth_filename=None, proposal_filename=None,
-                 ground_truth_fields=GROUND_TRUTH_FIELDS,
-                 proposal_fields=PROPOSAL_FIELDS,
                  tiou_thresholds=np.linspace(0.5, 0.95, 10),
                  max_avg_nr_proposals=None,
                  subset='validation', verbose=False,
@@ -30,8 +22,6 @@ class ANETproposal(object):
         self.tiou_thresholds = tiou_thresholds
         self.max_avg_nr_proposals = max_avg_nr_proposals
         self.verbose = verbose
-        self.gt_fields = ground_truth_fields
-        self.pred_fields = proposal_fields
         self.recall = None
         self.avg_recall = None
         self.proposals_per_video = None
@@ -72,9 +62,6 @@ class ANETproposal(object):
         """
         with open(ground_truth_filename, 'r') as fobj:
             data = json.load(fobj)
-        # Checking format
-        # if not all([field in data.keys() for field in self.gt_fields]):
-        #     raise IOError('Please input a valid ground truth file.')
 
         # Read ground truth data.
         activity_index, cidx = {}, 0
@@ -116,9 +103,6 @@ class ANETproposal(object):
 
         with open(proposal_filename, 'r') as fobj:
             data = json.load(fobj)
-        # Checking format...
-        # if not all([field in data.keys() for field in self.pred_fields]):
-        #     raise IOError('Please input a valid proposal file.')
 
         # Read predictions.
         video_lst, t_start_lst, t_end_lst = [], [], []
@@ -282,9 +266,4 @@ def average_recall_vs_avg_nr_proposals(ground_truth, proposals,
     proposals_per_video = pcn_lst * (float(total_nr_proposals) / video_lst.shape[0])
 
     return recall, avg_recall, proposals_per_video
-
-
-if __name__ == '__main__':
-    ap = ANETproposal("../../data/ActivityNet/video_info_19993.json", "DBG-0622-2111-activitynet.json")
-    ap.evaluate()
 
