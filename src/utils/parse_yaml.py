@@ -75,10 +75,10 @@ class Config(object):
 
         # Post Processing
         self.post_csv_load_dir = self.test_csv_save_dir
-        self.post_json_save_path = os.path.join(self.results_dir, '{}-{}.json}'.format(self.pth_name, self.mode))
+        self.post_json_save_path = os.path.join(self.results_dir, '{}-{}.json'.format(self.pth_name, self.mode))
 
         # eval 测评结果图表, 只能用于val dataset
-        self.eval_json_load_path = os.path.join(self.results_dir, '{}-validation.json}'.format(self.pth_name))
+        self.eval_json_load_path = os.path.join(self.results_dir, '{}-validation.json'.format(self.pth_name))
 
 
 

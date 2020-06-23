@@ -13,13 +13,12 @@ torch.backends.cudnn.enabled = False
 config = Config()
 if not os.path.exists(config.results_dir):
     os.makedirs(config.results_dir)
-pth_name = config.test_pth_name
+pth_load_dir = config.test_pth_load_dir
 
-results_dir = config.results_dir
+save_dir = config.test_csv_save_dir
 tscale = config.tscale
 feature_dim = config.feature_dim
 batch_size = config.test_batch_size
-test_mode = config.test_mode
 
 mask = gen_mask(tscale)
 mask = np.expand_dims(np.expand_dims(mask, 0), 1)
@@ -47,14 +46,14 @@ def test():
     with torch.no_grad():
         """ setup DBG model and load weights """
         net = DBG(feature_dim)
-        state_dict = torch.load(os.path.join(pth_name, 'checkpoint_best.pth'))
+        state_dict = torch.load(os.path.join(pth_load_dir, 'checkpoint_best.pth'))
         net.load_state_dict(state_dict)
         net = nn.DataParallel(net, device_ids=[0]).cuda()
         net.eval()
 
         train_dict, val_dict, test_dict = getDatasetDict(config, config.video_info_file)
 
-        if config.test_mode == 'validation':
+        if config.mode == 'validation':
             test_dict = val_dict
         batch_video_list = getBatchListTest(test_dict, batch_size)
 
@@ -65,7 +64,7 @@ def test():
         batch_result_pend = []
 
         print('Runing DBG model ...')
-        print("testing on {} dataset".format(config.test_mode))
+        print("testing on {} dataset".format(config.mode))
         for idx in tqdm.tqdm(range(len(batch_video_list))):
             batch_anchor_xmin, batch_anchor_xmax, batch_anchor_feature = getProposalDataTest(config, batch_video_list[idx])
             in_feature = torch.from_numpy(batch_anchor_feature).float().cuda().permute(0, 2, 1)
@@ -93,7 +92,7 @@ def test():
                               batch_result_pstart,
                               batch_result_pend,
                               tscale,
-                              results_dir)
+                              save_dir)
 
 
 if __name__ == "__main__":
