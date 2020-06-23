@@ -1,14 +1,16 @@
 from evaluation.eval_proposal import ANETproposal
+from evaluation.eval_detection import ANETdetection
 import numpy as np
 import argparse
 
 """ Define parser """
 parser = argparse.ArgumentParser()
-parser.add_argument('file_name', type=str)
+parser.add_argument("--gtfile", type=str)
+parser.add_argument('--evalfile', type=str)
 args = parser.parse_args()
 
 
-def run_evaluation(ground_truth_filename, proposal_filename,
+def run_evaluation_proposal(ground_truth_filename, proposal_filename,
                    max_avg_nr_proposals=100,
                    tiou_thresholds=np.linspace(0.5, 0.95, 10),
                    subset='validation'):
@@ -31,16 +33,25 @@ def run_evaluation(ground_truth_filename, proposal_filename,
     average_recall = anet_proposal.avg_recall
     average_nr_proposals = anet_proposal.proposals_per_video
 
-    return (average_nr_proposals, average_recall, recall)
+    return average_nr_proposals, average_recall, recall
 
 
-eval_file = args.file_name
+def run_evaluation_detection(ground_truth_filename, detection_filename,
+                   tiou_thresholds=np.linspace(0.5, 0.95, 10),
+                   subset='validation'):
+    anet_detection = ANETdetection(ground_truth_filename, detection_filename,
+                                 tiou_thresholds=tiou_thresholds,
+                                 subset=subset, verbose=True, check_status=False)
+    mAP, average_mAP = anet_detection.evaluate()
 
-# json_name = '../data/ActivityNet/activity_net_1_3_new.json'    # ground truth json file
-json_name = '../data/ActivityNet/video_info_19993.json'
+    return mAP, average_mAP
+
+gt_file = args.gtfile
+eval_file = args.evalfile
+
 uniform_average_nr_proposals_valid, uniform_average_recall_valid, uniform_recall_valid = \
-    run_evaluation(
-        json_name,
+    run_evaluation_proposal(
+        gt_file,
         eval_file,
         max_avg_nr_proposals=100,
         tiou_thresholds=np.linspace(0.5, 0.95, 10),
@@ -50,3 +61,5 @@ print("AR@1 is \t", np.mean(uniform_recall_valid[:, 0]))
 print("AR@5 is \t", np.mean(uniform_recall_valid[:, 4]))
 print("AR@10 is \t", np.mean(uniform_recall_valid[:, 9]))
 print("AR@100 is \t", np.mean(uniform_recall_valid[:, -1]))
+
+map, avg_map = run_evaluation_detection(gt_file, eval_file, tiou_thresholds=np.linspace(0.5, 0.95, 10), subset='validation')
