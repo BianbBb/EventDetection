@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 dataset:
   dataset_name: activitynet # activitynet thumos
   #dataset_name: activitynet
@@ -32,8 +33,7 @@ dataset:
 
 saver:
   exp_dir: ../exp
-  results_dir: ../results/result/ # test 生成结果文件位置,大量csv
-  result_dir: ../results/ # 结果json
+  results_dir: ../results/ # 结果文件的位置
 
 training:
   model_name: DBG
@@ -43,7 +43,57 @@ training:
   batch_size: 16
 
 testing:
-  mode: validation # testing
-  batch_size: 16
-  pth_name: ../exp/DBG-0623-0938-activitynet # model weights
+  mode: validation # validation or testing
+  test_batch_size: 16
+  pth_name: DBG-0623-1614-activitynet # model weights
 
+=======
+dataset:
+  dataset_name: activitynet # activitynet thumos
+  #dataset_name: activitynet
+  tianchi:
+    feat_dir: /data/byh/EventDetection/train/i3d_400/
+    video_info_file: ../data/Tianchi/train_annotations_new.json
+    test_info_file: ../data/Tianchi/val_video_ids.txt
+    test_dir: /data/byh/EventDetection/test/i3d_400/
+    video_filter: true
+    data_aug: true
+    tscale: 100
+    feature_dim: 1024
+
+  activitynet:
+    feat_dir: /data/byh/ActivityNet v1.3/DBG/all_csv_mean_100/
+    video_info_file: ../data/ActivityNet/video_info_19993.json
+    test_info_file: ../data/ActivityNet/activity_net_1_3_new.json
+    test_dir: /data/byh/ActivityNet v1.3/DBG/all_csv_mean_100/
+    video_filter: true
+    data_aug: true
+    tscale: 100
+    feature_dim: 400
+
+  thumos:
+    feat_dir: /data/byh/THUMOS/xxx
+    video_info_file: ../data/THUMOS/xxx
+    test_info_file: ../data/THUMOS/xxx
+    video_filter: true
+    data_aug: true
+    tscale: 100
+    feature_dim: 400
+
+saver:
+  exp_dir: ../exp
+  results_dir: ../results/ # 结果文件的位置
+
+training:
+  model_name: DBG
+  learning_rate: [1e-3, 1e-4]
+  lr_epochs: [8, 4]
+  epoch_num: 10
+  batch_size: 16
+
+testing:
+  mode: validation # validation or testing
+  test_batch_size: 16
+  pth_name: DBG-0623-0938-activitynet # model weights
+
+>>>>>>> 172aeebacd27e016340a906190ff6599e855f2dc
