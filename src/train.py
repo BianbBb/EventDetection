@@ -132,8 +132,10 @@ def train(net, dl_iter, optimizer, epoch, training, writer=None):
                    os.path.join(checkpoint_dir, 'checkpoint-%d.pth' % epoch))
         if cost_val < net.module.best_loss:
             net.module.best_loss = cost_val
+
             torch.save(net.module.state_dict(),
                        os.path.join(checkpoint_dir, 'checkpoint_best.pth'))
+            print("model saved in ", checkpoint_dir)
 
 
 def set_seed(seed):

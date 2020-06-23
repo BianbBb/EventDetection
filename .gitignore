@@ -14,6 +14,7 @@ logs/
 *.zip
 *.7z
 *.mp4
+*.pth
 *.npy
 *.csv
 try*
