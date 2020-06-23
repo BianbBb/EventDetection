@@ -4,10 +4,10 @@ import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
 
-from .utils_eval import get_blocked_videos
-from .utils_eval import interpolated_prec_rec
-from .utils_eval import segment_iou
-from .utils_eval import wrapper_segment_iou
+from utils_eval import get_blocked_videos
+from utils_eval import interpolated_prec_rec
+from utils_eval import segment_iou
+from utils_eval import wrapper_segment_iou
 
 
 class ANETproposal(object):
@@ -21,7 +21,7 @@ class ANETproposal(object):
                  tiou_thresholds=np.linspace(0.5, 0.95, 10),
                  max_avg_nr_proposals=None,
                  subset='validation', verbose=False,
-                 check_status=True):
+                 check_status=False):
         if not ground_truth_filename:
             raise IOError('Please input a valid ground truth file.')
         if not proposal_filename:
@@ -157,6 +157,7 @@ class ANETproposal(object):
         self.avg_recall = avg_recall
         self.proposals_per_video = proposals_per_video
 
+
 def average_recall_vs_avg_nr_proposals(ground_truth, proposals,
                                        max_avg_nr_proposals=None,
                                        tiou_thresholds=np.linspace(0.5, 0.95, 10)):
@@ -196,6 +197,7 @@ def average_recall_vs_avg_nr_proposals(ground_truth, proposals,
     # Adaptation to query faster
     ground_truth_gbvn = ground_truth.groupby('video-id')
     proposals_gbvn = proposals.groupby('video-id')
+    print(proposals_gbvn.plot())
 
     # For each video, computes tiou scores among the retrieved proposals.
     score_lst = []
@@ -231,6 +233,7 @@ def average_recall_vs_avg_nr_proposals(ground_truth, proposals,
 
         nr_proposals = np.minimum(int(this_video_proposals.shape[0] * ratio), 
             this_video_proposals.shape[0])
+        print("nr", nr_proposals)
         total_nr_proposals += nr_proposals
         this_video_proposals = this_video_proposals[:nr_proposals, :]
 
@@ -244,8 +247,7 @@ def average_recall_vs_avg_nr_proposals(ground_truth, proposals,
     # retrieved per video.
 
     # Computes average recall.
-    pcn_lst = np.arange(1, 101) / 100.0 *(max_avg_nr_proposals
-        *float(video_lst.shape[0])/total_nr_proposals)
+    pcn_lst = np.arange(1, 101) / 100.0 * (max_avg_nr_proposals *float(video_lst.shape[0])/total_nr_proposals)
     matches = np.empty((video_lst.shape[0], pcn_lst.shape[0]))
     positives = np.empty(video_lst.shape[0])
     recall = np.empty((tiou_thresholds.shape[0], pcn_lst.shape[0]))
@@ -278,4 +280,9 @@ def average_recall_vs_avg_nr_proposals(ground_truth, proposals,
     proposals_per_video = pcn_lst * (float(total_nr_proposals) / video_lst.shape[0])
 
     return recall, avg_recall, proposals_per_video
+
+
+if __name__ == '__main__':
+    ap = ANETproposal("../../data/ActivityNet/video_info_19993.json", "DBG-0622-2111-activitynet.json")
+    ap.evaluate()
 

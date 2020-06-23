@@ -79,14 +79,14 @@ class ANETdetection(object):
         with open(ground_truth_filename, 'r') as fobj:
             data = json.load(fobj)
         # Checking format
-        if not all([field in data.keys() for field in self.gt_fields]):
-            raise IOError('Please input a valid ground truth file.')
+        # if not all([field in data.keys() for field in self.gt_fields]):
+        #     raise IOError('Please input a valid ground truth file.')
 
 
         # Read ground truth data.
         activity_index, cidx = {}, 0
         video_lst, t_start_lst, t_end_lst, label_lst = [], [], [], []
-        for videoid, v in data['database'].items():
+        for videoid, v in data.items():
             # print(v)
             if self.subset != v['subset']:
                 continue
@@ -100,7 +100,7 @@ class ANETdetection(object):
                 t_start_lst.append(float(ann['segment'][0]))
                 t_end_lst.append(float(ann['segment'][1]))
                 label_lst.append(activity_index[ann['label']])
-
+        print(video_lst)
         ground_truth = pd.DataFrame({'video-id': video_lst,
                                      't-start': t_start_lst,
                                      't-end': t_end_lst,
@@ -140,6 +140,7 @@ class ANETdetection(object):
                 t_end_lst.append(float(result['segment'][1]))
                 label_lst.append(label)
                 score_lst.append(result['score'])
+        print(video_lst)
         prediction = pd.DataFrame({'video-id': video_lst,
                                    't-start': t_start_lst,
                                    't-end': t_end_lst,
@@ -276,6 +277,6 @@ def compute_average_precision_detection(ground_truth, prediction, tiou_threshold
 
 
 if __name__ == '__main__':
-    ad = ANETdetection("../../data/ActivityNet/activity_net_1_3_new.json", "DBG-0622-2111-activitynet.json")
+    ad = ANETdetection("../../data/ActivityNet/video_info_19993.json", "../../results/DBG-0622-2111-activitynet.json")
     mAP, average_mAP = ad.evaluate()
     print("mAP", mAP, "average mAP", average_mAP)
