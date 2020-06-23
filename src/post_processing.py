@@ -147,7 +147,7 @@ if __name__ == '__main__':
         video_dict = test_dict
 
     output_file = config.post_json_save_path
-    print('')
+    print('save to :{}'.format(output_file))
     video_list = list(video_dict.keys())
 
     """ Post processing using multiprocessing
