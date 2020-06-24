@@ -23,6 +23,8 @@ def load_feature(config, folder, file):
     # for TianChi dataset
     elif config.dataset_name == 'tianchi':
         video_feat = np.load(os.path.join(folder, "{}.npy".format(file)))
+    elif config.dataset_name == 'thumos':
+        print('thumos data load function has not been defined !')
     else:
         raise TypeError
     return video_feat
@@ -127,7 +129,10 @@ def gen_mask(tscale):
 def getProposalDataTest(config, video_list):
     tscale = config.tscale
     tgap = 1.0 / tscale
+
     data_dir = config.test_dir
+    if config.mode == 'validation' and config.dataset_name == 'tianchi':
+        data_dir = config.feat_dir
 
     batch_anchor_xmin = []
     batch_anchor_xmax = []
