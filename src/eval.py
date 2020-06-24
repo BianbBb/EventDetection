@@ -5,8 +5,9 @@ import argparse
 
 """ Define parser """
 parser = argparse.ArgumentParser()
-parser.add_argument("--gtfile", type=str)
-parser.add_argument('--evalfile', type=str)
+
+parser.add_argument('-d', '--dataset', type=str, default='an')  # an:ActivityNet, tc:TianChi, th:Thumos
+parser.add_argument('-r', '--evalfile', type=str)
 args = parser.parse_args()
 
 
@@ -37,8 +38,14 @@ def run_evaluation_detection(ground_truth_filename, detection_filename,
 
     return mAP, average_mAP
 
-
-gt_file = args.gtfile
+if args.dataset == 'ac':
+    gt_file = "../data/ActivityNet/video_info_19993.json"
+elif args.dataset == 'tc':
+    gt_file = "../data/Tianchi/train_annotations_new.json"
+elif args.dataset == 'th':
+    gt_file = "../data/THUMOS/XXX"
+else:
+    raise IOError('Dataset name is unavailable ！')
 eval_file = args.evalfile
 
 uniform_average_nr_proposals_valid, uniform_average_recall_valid, uniform_recall_valid = \
