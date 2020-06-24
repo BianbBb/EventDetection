@@ -17,7 +17,7 @@ def run_evaluation_proposal(ground_truth_filename, proposal_filename,
     anet_proposal = ANETproposal(ground_truth_filename, proposal_filename,
                                  tiou_thresholds=tiou_thresholds,
                                  max_avg_nr_proposals=max_avg_nr_proposals,
-                                 subset=subset, verbose=False, check_status=False)
+                                 subset=subset, verbose=True, check_status=False)
     anet_proposal.evaluate()
 
     recall = anet_proposal.recall
@@ -54,7 +54,7 @@ print("AR@5 is \t", np.mean(uniform_recall_valid[:, 4]))
 print("AR@10 is \t", np.mean(uniform_recall_valid[:, 9]))
 print("AR@100 is \t", np.mean(uniform_recall_valid[:, -1]))
 
-map, avg_map = run_evaluation_detection(gt_file, eval_file, tiou_thresholds=np.linspace(0.5, 0.95, 10),
-                                        subset='validation')
-print("map in different theresshold", map)
-print("average map", avg_map)
+# map, avg_map = run_evaluation_detection(gt_file, eval_file, tiou_thresholds=np.linspace(0.5, 0.95, 10),
+#                                         subset='validation')
+# print("map in different theresshold", map)
+# print("average map", avg_map)

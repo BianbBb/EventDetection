@@ -79,8 +79,3 @@ class Config(object):
 
         # eval 测评结果图表, 只能用于val dataset
         self.eval_json_load_path = os.path.join(self.results_dir, '{}-validation.json'.format(self.pth_name))
-
-
-
-
-

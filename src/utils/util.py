@@ -337,4 +337,3 @@ def save_proposals_result(batch_video_list,
             """
             tmp_df.to_csv(os.path.join(result_dir, tmp_video + '.csv'), index=False)
 
-
