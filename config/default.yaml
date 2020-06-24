@@ -36,8 +36,8 @@ saver:
 
 training:
   model_name: DBG
-  learning_rate: [1e-3, 1e-4]
-  lr_epochs: [8, 4]
+  learning_rate: [1e-3, 1e-4, 1e-5]
+  lr_epochs: [8, 8, 16]
   epoch_num: 10
   batch_size: 16
 
