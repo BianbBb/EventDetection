@@ -44,5 +44,5 @@ training:
 testing:
   mode: validation # validation or testing
   test_batch_size: 16
-  pth_name: DBG-0624-0956-tianchi # model weights
+  pth_name: DBG-0624-1934-tianchi # model weights
 
