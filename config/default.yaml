@@ -1,5 +1,5 @@
 dataset:
-  dataset_name: activitynet # activitynet thumos
+  dataset_name: tianchi #  activitynet  thumos   tianchi
   #dataset_name: activitynet
   tianchi:
     feat_dir: /data/byh/EventDetection/train/i3d_400/
