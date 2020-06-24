@@ -38,7 +38,7 @@ def run_evaluation_detection(ground_truth_filename, detection_filename,
 
     return mAP, average_mAP
 
-if args.dataset == 'ac':
+if args.dataset == 'an':
     gt_file = "../data/ActivityNet/video_info_19993.json"
 elif args.dataset == 'tc':
     gt_file = "../data/Tianchi/train_annotations_new.json"
