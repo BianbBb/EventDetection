@@ -1,6 +1,7 @@
 import os
 import random
 import warnings
+import argparse
 
 import numpy as np
 import torch
@@ -14,9 +15,13 @@ from data_loader import MyDataSet
 from utils.util import gen_mask
 from utils.parse_yaml import Config
 from losses import binary_logistic_loss, IoU_loss
-
-
 warnings.filterwarnings('ignore')
+
+# add resume train
+parser = argparse.ArgumentParser()
+parser.add_argument('-p', "--pretrained_model", type=str, default=None)
+args = parser.parse_args()
+
 config = Config()
 if not os.path.exists(config.train_pth_save_dir):
     os.makedirs(config.train_pth_save_dir)
@@ -159,6 +164,9 @@ if __name__ == '__main__':
     set_seed(2020)
     writer = SummaryWriter(logdir="logs/")
     model = DBG(feature_dim)
+    if args.pretrained_model is not None:
+        state_dict = torch.load(os.path.join(args.pretrained_model, 'checkpoint_best.pth'))
+        model.load_state_dict(state_dict)
     model = nn.DataParallel(model, device_ids=[0]).cuda()
 
     # set weight decay for different parameters
