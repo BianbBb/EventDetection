@@ -176,4 +176,4 @@ if __name__ == '__main__':
 
     with open(output_file, 'w') as outfile:
         json.dump(result_dict, outfile)
-    print("result json file saved in ", outfile)
+    print("result json file saved in ", output_file)
