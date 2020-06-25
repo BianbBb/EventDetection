@@ -9,18 +9,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def statistic(info):
-    info=info
+def statistic(gt, result):
+
     lengths = []
     segment_ratio = []
     segment_num = []
     act_labels = []
     test_duration = []
-    for k,v in info.items():
+    for k,v in gt.items():
         if v['subset'] != 'testing':
             duration = v['duration']
             lengths.append(duration)
             seg_num = 0
+
+            for
 
             for act in v['annotations']:
                 start = act['segment'][0]
@@ -62,12 +64,15 @@ def draw(info,dataset):
 if __name__ == '__main__':
     dataset_name = 'activitynet'
     if dataset_name =='tianchi':
-        info_file = '../../../data/Tianchi/train_annotations_new.json'
+        gt_file = '../../../data/Tianchi/train_annotations_new.json'
+        result_file = '../../../results/DBG-0624-0956-tianchi-validation.json'
     elif dataset_name=='activitynet':
-        info_file = '../../../data/ActivityNet/video_info_19993.json'
+        gt_file = '../../../data/ActivityNet/video_info_19993.json'
+        result_file = '../../../results/DBG-0623-1614-activitynet-validation.json'
     elif dataset_name=='thumos':
-        info_file = None
+        gt_file = None
 
-    info = load_info(info_file)
-    lengths,act_labels,segment_num,segment_ratio = statistic(info)
-    draw(segment_ratio,dataset_name)
+    gt = load_info(gt_file)
+    result = load_info(result_file)
+    lengths, act_labels, segment_num, segment_ratio = statistic(gt,result)
+    draw(segment_ratio, dataset_name)
