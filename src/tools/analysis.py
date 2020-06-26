@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def statistic(gt, result, contrast=False):
+def statistic(gt, result, subset="validation", contrast=False):
     # if contrast is True, show analysis about prediction result
 
     lengths = []
@@ -16,20 +16,23 @@ def statistic(gt, result, contrast=False):
     act_labels = []
     test_duration = []
     for k, v in gt.items():
-        if v['subset'] != 'testing':
-            duration = v['duration']
-            lengths.append(duration)
-            seg_num = 0
-
-            for act in v['annotations']:
-                start = act['segment'][0]
-                end = act['segment'][1]
-                segment_ratio.append((end - start) / duration)
-                act_labels.append(act['label'])
-                seg_num += 1
-            segment_num.append(seg_num)
+        if v['subset'] != subset:
+            continue
         else:
-            test_duration.append(v['duration'])
+            if v['subset'] != "testing":
+                duration = v['duration']
+                lengths.append(duration)
+                seg_num = 0
+                anno = result[k] if contrast else v["annotations"]
+                for act in anno:
+                    start = act['segment'][0]
+                    end = act['segment'][1]
+                    segment_ratio.append((end - start) / duration)
+                    act_labels.append(act['label'])
+                    seg_num += 1
+                segment_num.append(seg_num)
+            else:
+                test_duration.append(v['duration'])
 
     return lengths, act_labels, segment_num, segment_ratio
 
@@ -44,6 +47,7 @@ def draw(info, dataset):
     print('max:{}'.format(max(info)))  # 448 755
 
     bins = np.arange(0, 1.01, 0.05)
+    color = None
     if dataset == 'tianchi':
         color = 'b'
     elif dataset == 'activitynet':
@@ -59,10 +63,11 @@ def draw(info, dataset):
 
 
 if __name__ == '__main__':
-    dataset_name = 'activitynet'
+    dataset_name = 'tianchi'
+    gt_file, result_file = None, None
     if dataset_name == 'tianchi':
         gt_file = '../../data/Tianchi/train_annotations_new.json'
-        result_file = '../../../results/DBG-0624-0956-tianchi-validation.json'
+        result_file = '../../results/DBG-0625-1115-tianchi-validation.json'
     elif dataset_name == 'activitynet':
         gt_file = '../../data/ActivityNet/video_info_19993.json'
         result_file = '../../../results/DBG-0623-1614-activitynet-validation.json'
@@ -71,5 +76,5 @@ if __name__ == '__main__':
 
     gt = load_info(gt_file)
     result = load_info(result_file)
-    lengths, act_labels, segment_num, segment_ratio = statistic(gt, result)
+    lengths, act_labels, segment_num, segment_ratio = statistic(gt, result, subset='validation', contrast=False)
     draw(segment_ratio, dataset_name)
