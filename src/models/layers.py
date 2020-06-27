@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 from custom_op.prop_tcfg_op import PropTcfg
 
-
 def conv1d(in_channels, out_channels, kernel_size=3, is_relu=True):
     """
     Construct Conv1D operation

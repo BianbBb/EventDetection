@@ -17,7 +17,7 @@ config = Config()
 """ Define parser """
 parser = argparse.ArgumentParser()
 parser.add_argument('top_number', type=int, nargs='?', default=100)
-parser.add_argument('-t', '--thread', type=int, nargs='?', default=8)
+parser.add_argument('-t', '--thread', type=int, nargs='?', default=16)
 args = parser.parse_args()
 
 """ Number of proposal needed to keep for every video"""
@@ -78,8 +78,8 @@ def softNMS(df):
         tmp_width = tmp_end - tmp_start
         iou = intersection / (tmp_width + duration - intersection).astype(np.float)
 
-        idxs = np.where(iou > 0.65 + 0.25 * tmp_width)[0]
-        tscore[idxs] = tscore[idxs] * np.exp(-np.square(iou[idxs]) / 0.75)
+        idxs = np.where(iou > 0.5 + 0.25 * tmp_width)[0]
+        tscore[idxs] = tscore[idxs] * np.exp(-np.square(iou[idxs]) / 0.95)
 
         tstart = list(tstart)
         tend = list(tend)
@@ -125,8 +125,8 @@ def sub_processor(lock, pid, video_list):
             tmp_proposal["score"] = df.score.values[j]
             tmp_proposal["segment"] = [max(0, df.xmin.values[j]) * video_duration,
                                        min(1, df.xmax.values[j]) * video_duration]
-            #tmp_proposal["label"] = "驾驶汽车"  # TODO:label
-            tmp_proposal["label"] = "Fun sliding down"
+            tmp_proposal["label"] = "行走"  # TODO:label
+            # tmp_proposal["label"] = "Fun sliding down"
             proposal_list.append(tmp_proposal)
         result_dict[video_name] = proposal_list
         with lock:

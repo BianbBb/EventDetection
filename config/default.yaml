@@ -35,7 +35,7 @@ saver:
   results_dir: ../results/ # 结果文件的位置
 
 training:
-  model_name: DBG
+  model_name: DBG_reduce_dim  # DBG_reduce_dim or DBG
   learning_rate: [1e-3, 1e-4, 1e-5]
   lr_epochs: [8, 8, 16]
   epoch_num: 10
@@ -44,5 +44,5 @@ training:
 testing:
   mode: validation # validation or testing
   test_batch_size: 16
-  pth_name: DBG-0624-1934-tianchi # model weights
+  pth_name: DBG-0625-1115-tianchi # model weights
 

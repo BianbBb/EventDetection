@@ -10,7 +10,7 @@ import tqdm
 from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
 
-from model import DBG
+from models.model import network
 from data_loader import MyDataSet
 from utils.util import gen_mask
 from utils.parse_yaml import Config
@@ -35,7 +35,8 @@ tscale = config.tscale
 feature_dim = config.feature_dim
 epoch_num = config.epoch_num
 
-""" Initialize map mask
+""" 
+Initialize map mask
 """
 mask = gen_mask(tscale)
 mask = np.expand_dims(np.expand_dims(mask, 0), 1)
@@ -93,8 +94,8 @@ def train(net, dl_iter, optimizer, epoch, training, writer=None):
         )
 
         # total loss
+        # cost = 2.0 * loss_action + loss_iou + loss_start + loss_end
         cost = 2.0 * loss_action + loss_iou + loss_start + loss_end
-
         if training:
             optimizer.zero_grad()
             cost.backward()
@@ -135,7 +136,7 @@ def train(net, dl_iter, optimizer, epoch, training, writer=None):
 
         torch.save(net.module.state_dict(),
                    os.path.join(checkpoint_dir, 'checkpoint-%d.pth' % epoch))
-        if cost_val < net.module.best_loss:
+        if cost_val < net.module.basemodel.best_loss:
             net.module.best_loss = cost_val
 
             torch.save(net.module.state_dict(),
@@ -163,7 +164,7 @@ if __name__ == '__main__':
         print('Only train on CPU.')
     set_seed(2020)
     writer = SummaryWriter(logdir="logs/")
-    model = DBG(feature_dim)
+    model = network(config)
     if args.pretrained_model is not None:
         state_dict = torch.load(os.path.join(args.pretrained_model, 'checkpoint_best.pth'))
         model.load_state_dict(state_dict)
@@ -176,20 +177,20 @@ if __name__ == '__main__':
             Net_bias.append(p)
 
     DSBNet_weight = []
-    for name, p in model.module.DSBNet.named_parameters():
+    for name, p in model.module.basemodel.DSBNet.named_parameters():
         if 'bias' not in name:
             DSBNet_weight.append(p)
 
     PFG_weight = []
-    for name, p in model.module.PropFeatGen.named_parameters():
+    for name, p in model.module.basemodel.PropFeatGen.named_parameters():
         if 'bias' not in name:
             PFG_weight.append(p)
 
     ACR_TBC_weight = []
-    for name, p in model.module.ACRNet.named_parameters():
+    for name, p in model.module.basemodel.ACRNet.named_parameters():
         if 'bias' not in name:
             ACR_TBC_weight.append(p)
-    for name, p in model.module.TBCNet.named_parameters():
+    for name, p in model.module.basemodel.TBCNet.named_parameters():
         if 'bias' not in name:
             ACR_TBC_weight.append(p)
 
