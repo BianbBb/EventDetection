@@ -18,6 +18,7 @@ def network(config):
 
 
 if __name__ == '__main__':
+    from torchsummary import summary
     net = network()
     x = torch.zeros([32, 1024, 100])
     print(net(x))
