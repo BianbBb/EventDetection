@@ -22,8 +22,6 @@ def statistic(gt, result):
             lengths.append(duration)
             seg_num = 0
 
-            for
-
             for act in v['annotations']:
                 start = act['segment'][0]
                 end = act['segment'][1]
@@ -62,7 +60,7 @@ def draw(info,dataset):
 
 
 if __name__ == '__main__':
-    dataset_name = 'activitynet'
+    dataset_name = 'tianchi'
     if dataset_name =='tianchi':
         gt_file = '../../../data/Tianchi/train_annotations_new.json'
         result_file = '../../../results/DBG-0624-0956-tianchi-validation.json'

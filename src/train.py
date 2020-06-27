@@ -35,7 +35,8 @@ tscale = config.tscale
 feature_dim = config.feature_dim
 epoch_num = config.epoch_num
 
-""" Initialize map mask
+""" 
+Initialize map mask
 """
 mask = gen_mask(tscale)
 mask = np.expand_dims(np.expand_dims(mask, 0), 1)
@@ -93,8 +94,8 @@ def train(net, dl_iter, optimizer, epoch, training, writer=None):
         )
 
         # total loss
+        # cost = 2.0 * loss_action + loss_iou + loss_start + loss_end
         cost = 2.0 * loss_action + loss_iou + loss_start + loss_end
-
         if training:
             optimizer.zero_grad()
             cost.backward()
