@@ -1,4 +1,5 @@
 import os
+import shutil
 import random
 import warnings
 import argparse
@@ -164,6 +165,8 @@ if __name__ == '__main__':
         print('Only train on CPU.')
     set_seed(2020)
     writer = SummaryWriter(logdir="logs/")
+    if os.path.exists('logs/'):
+        shutil.rmtree('logs/')
     model = network(config)
     if args.pretrained_model is not None:
         state_dict = torch.load(os.path.join(args.pretrained_model, 'checkpoint_best.pth'))
