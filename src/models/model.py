@@ -6,6 +6,7 @@ import numpy as np
 from torch import nn
 
 from .modules import DSBaseNet, ProposalFeatureGeneration, ACRNet, TBCNet
+from .layers import conv1d
 
 
 def network(config):
@@ -73,8 +74,8 @@ class DBG(nn.Module):
 class DBG_reduce_dim(nn.Module):
     def __init__(self, in_dim=1024, out_dim=400):
         super(DBG_reduce_dim, self).__init__()
-        self.pre1 = nn.Conv1d(in_dim, out_dim // 2, 1)
-        self.pre2 = nn.Conv1d(in_dim, out_dim // 2, 1)
+        self.pre1 = conv1d(in_dim, out_dim // 2, 3)
+        self.pre2 = conv1d(in_dim, out_dim // 2, 3)
         self.basemodel = DBG(feature_dim=400)
 
     def forward(self, x):
