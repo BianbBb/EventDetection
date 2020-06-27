@@ -2,35 +2,21 @@
 # assemble modules defined in other scripts
 
 import torch
-from utils.parse_yaml import Config
+import numpy as np
 from torch import nn
-from modules import DSBaseNet, ProposalFeatureGeneration, ACRNet, TBCNet
 
-config = Config()
+from .modules import DSBaseNet, ProposalFeatureGeneration, ACRNet, TBCNet
 
 
-def network():
-    if config.model == 'DBG':
+def network(config):
+    model = None
+    if config.model_name == 'DBG':
         model = DBG(feature_dim=400)
-    elif config.model == 'DBG_reduce_dim':
+    elif config.model_name == 'DBG_reduce_dim':
         model = DBG_reduce_dim(in_dim=1024, out_dim=400)
     else:
         print('wrong model')
-
-
-class DBG_reduce_dim(nn.Module):
-    def __init__(self, in_dim=1024, out_dim=400):
-        super(DBG_reduce_dim, self).__init__()
-        self.pre1 = nn.Conv1d(in_dim, out_dim // 2, 1)
-        self.pre2 = nn.Conv1d(in_dim, out_dim // 2, 1)
-        self.basemodel = DBG(feature_dim=400)
-
-    def forword(self, x):
-        p1 = self.pre1(x)  # (b,1024,100) ->(b,200,100)
-        p2 = self.pre2(x)  # (b,1024,100) ->(b,200,100)
-        input = torch.cat(p1, p2, dim=1)  # (b,400,100)
-        output = self.basemodel(input)
-        return output
+    return model
 
 
 class DBG(nn.Module):
@@ -84,8 +70,22 @@ class DBG(nn.Module):
         return output_dict
 
 
-if __name__ == '__main__':
-    from torchsummary import summary
+class DBG_reduce_dim(nn.Module):
+    def __init__(self, in_dim=1024, out_dim=400):
+        super(DBG_reduce_dim, self).__init__()
+        self.pre1 = nn.Conv1d(in_dim, out_dim // 2, 1)
+        self.pre2 = nn.Conv1d(in_dim, out_dim // 2, 1)
+        self.basemodel = DBG(feature_dim=400)
 
+    def forward(self, x):
+        p1 = self.pre1(x)  # (b,1024,100) ->(b,200,100)
+        p2 = self.pre2(x)
+        input = torch.cat([p1, p2], dim=1)  # (b,400,100)
+        output = self.basemodel(input)
+        return output
+
+
+if __name__ == '__main__':
     net = network()
-    summary(net, (100, 1024), batch_size=2)
+    x = torch.zeros([32, 1024, 100])
+    print(net(x))

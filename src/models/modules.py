@@ -2,7 +2,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 from custom_op.prop_tcfg_op import PropTcfg
-from layers import conv1d,conv2d
+from .layers import conv1d, conv2d
+
 
 class DSBaseNet(nn.Module):
     """
@@ -114,4 +115,3 @@ class TBCNet(nn.Module):
         prop_start = x[:, :1].contiguous()
         prop_end = x[:, 1:].contiguous()
         return prop_start, prop_end
-
