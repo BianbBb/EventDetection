@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 import torch.nn as nn
 from custom_op.prop_tcfg_op import PropTcfg

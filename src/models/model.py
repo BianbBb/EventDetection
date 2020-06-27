@@ -1,9 +1,7 @@
 # framework
 # assemble modules defined in other scripts
 
-import torch
-import numpy as np
-from src.models.dbg import DBG, DBG_reduce_dim
+from .dbg import DBG, DBG_reduce_dim
 
 
 def network(config):
@@ -17,8 +15,3 @@ def network(config):
     return model
 
 
-if __name__ == '__main__':
-    from torchsummary import summary
-    net = network()
-    x = torch.zeros([32, 1024, 100])
-    print(net(x))

@@ -1,13 +1,9 @@
 import torch
 import numpy as np
 from torch import nn
-
 from .modules import DSBaseNet, ProposalFeatureGeneration, ACRNet, TBCNet
 from .layers import conv1d
-from torch import nn
 
-from .modules import DSBaseNet, ProposalFeatureGeneration, ACRNet, TBCNet
-from .layers import conv1d
 
 class DBG(nn.Module):
     """
