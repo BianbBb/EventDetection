@@ -156,14 +156,27 @@ class TBCNet(nn.Module):
         return prop_start, prop_end
 
 
+class Split(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(Split, self).__init__()
+        self.conv_spatial = nn.Conv1d(in_channels, out_channels, kernel_size=1)
+        self.conv_tempotral = nn.Conv1d(in_channels, out_channels, kernel_size=1)
+
+    def forward(self, x):
+        a, b = self.conv_spatial(x), self.conv_tempotral(x)
+        a, b = a.transpose(1, 2), b.transpose(1, 2)
+        rst = torch.cat([a, b], dim=2)
+        return rst
+
+
 class DBG(nn.Module):
     """
     Setup dense boundary generator framework (DBG)
     """
     def __init__(self, feature_dim):
         super(DBG, self).__init__()
-
-        self.DSBNet = DSBaseNet(feature_dim)
+        self.scale_layer = Split(feature_dim, 200)
+        self.DSBNet = DSBaseNet(400)
         self.PropFeatGen = ProposalFeatureGeneration()
         self.ACRNet = ACRNet()
         self.TBCNet = TBCNet()
