@@ -137,7 +137,7 @@ def train(net, dl_iter, optimizer, epoch, training, writer=None):
 
         torch.save(net.module.state_dict(),
                    os.path.join(checkpoint_dir, 'checkpoint-%d.pth' % epoch))
-        if cost_val < net.module.basemodel.best_loss:
+        if cost_val < net.module.best_loss:
             net.module.best_loss = cost_val
 
             torch.save(net.module.state_dict(),
@@ -180,20 +180,20 @@ if __name__ == '__main__':
             Net_bias.append(p)
 
     DSBNet_weight = []
-    for name, p in model.module.basemodel.DSBNet.named_parameters():
+    for name, p in model.module.DSBNet.named_parameters():
         if 'bias' not in name:
             DSBNet_weight.append(p)
 
     PFG_weight = []
-    for name, p in model.module.basemodel.PropFeatGen.named_parameters():
+    for name, p in model.module.PropFeatGen.named_parameters():
         if 'bias' not in name:
             PFG_weight.append(p)
 
     ACR_TBC_weight = []
-    for name, p in model.module.basemodel.ACRNet.named_parameters():
+    for name, p in model.module.ACRNet.named_parameters():
         if 'bias' not in name:
             ACR_TBC_weight.append(p)
-    for name, p in model.module.basemodel.TBCNet.named_parameters():
+    for name, p in model.module.TBCNet.named_parameters():
         if 'bias' not in name:
             ACR_TBC_weight.append(p)
 
