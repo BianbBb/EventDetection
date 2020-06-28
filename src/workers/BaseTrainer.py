@@ -1,27 +1,28 @@
 import torch
 import os
-from torch import nn
+
 
 class BaseTrainer(object):
-    def __init__(self, para, net, optimizer=None, loss=None,):
-        self.EPOCH = self.para.EPOCH
-        self.BATCH_SIZE = self.para.BATCH_SIZE
+    def __init__(self, config, net, optimizer=None, loss=None,):
+        self.EPOCH = self.config.EPOCH
+        self.BATCH_SIZE = self.config.BATCH_SIZE
         self.net = net
-        self.device = self.para.device
+        self.device = self.config.device
 
-        torch.cuda.manual_seed(self.para.SEED)
+        # set seed
+        torch.cuda.manual_seed(self.config.SEED)
         # torch.cuda.set_device(self.device)
         torch.backends.cudnn.benchmark = True
 
-        self.exp_dir = para.exp_dir
-        self.exp_name = para.exp_name
+        self.exp_dir = config.exp_dir
+        self.exp_name = config.exp_name # +'best_checkpoin.pth'
         self.exp_path = os.path.join(self.exp_dir, self.exp_name)
 
         # if len(self.para.gpu_ids) > 0:
         #     self.net = nn.DataParallel(net, device_ids=self.para.gpu_ids)
         self.net.to(self.device)
 
-        if self.para.resume:  # 从文件中读取模型参数
+        if self.config.resume:  # 从文件中读取模型参数
             self.load_weight()
         self.optimizer_name = optimizer
         self.set_optimizer()
@@ -29,23 +30,23 @@ class BaseTrainer(object):
     def load_weight(self):
         try:
             self.net.load_state_dict(torch.load(self.exp_path))
-            self.logger.info('Net Parameters Loaded Successfully!')
+            print('Net Parameters Loaded Successfully!')
         except FileNotFoundError:
-            self.logger.warning('Can not find feature.pkl !')
+            print('Can not find feature.pkl !')
 
 
     def set_optimizer(self):
         if self.optimizer_name is 'Adam':
             self.optimizer = torch.optim.Adam(
                 self.net.parameters(),
-                lr=self.para.lr,)
+                lr=self.config.lr,)
 
         elif self.optimizer_name is 'SGD':
             self.optimizer = torch.optim.SGD(
                 self.net.parameters(),
-                lr=self.para.lr,
-                momentum=self.para.momentum,
-                weight_decay=self.para.weight_decay)
+                lr=self.config.lr,
+                momentum=self.config.momentum,
+                weight_decay=self.config.weight_decay)
 
     def train(self):
         raise NotImplementedError
