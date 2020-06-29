@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from custom_op.prop_tcfg_op import PropTcfg
+from ..custom_op.prop_tcfg_op import PropTcfg
 from .layers import conv1d, conv2d
 
 

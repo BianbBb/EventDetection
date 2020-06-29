@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import Dataset
-from utils.util import getDatasetDict, getFullData
+from utils.utils import getDatasetDict, getFullData
 import numpy as np
 
 

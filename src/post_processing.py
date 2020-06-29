@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import tqdm
 
-from utils.util import getDatasetDict
+from utils.utils import getDatasetDict
 from utils.parse_yaml import Config
 
 config = Config()

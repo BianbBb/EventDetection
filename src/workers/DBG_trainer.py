@@ -10,12 +10,12 @@ sys.path.append("..")
 from detect.losses import FocalLoss,BGLoss
 from detect.losses import RegL1Loss, RegLoss, NormRegL1Loss
 # from .decode import ctdet_decode
-from utils.util import _sigmoid
+from utils.utils import _sigmoid
 # from utils.debuger import Debugger
 # from utils.post_process import ctdet_post_process
 from utils.gen_oracle_map import gen_oracle_map
 from .BaseTrainer import BaseTrainer
-from utils.util import AverageMeter
+from utils.utils import AverageMeter
 
 
 class DetTrainer(BaseTrainer):

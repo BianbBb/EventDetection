@@ -13,7 +13,7 @@ from tensorboardX import SummaryWriter
 
 from models.model import network
 from data_loader import MyDataSet
-from utils.util import gen_mask
+from utils.utils import gen_mask
 from utils.parse_yaml import Config
 from losses import binary_logistic_loss, IoU_loss
 warnings.filterwarnings('ignore')

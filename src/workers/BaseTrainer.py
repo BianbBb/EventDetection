@@ -4,6 +4,7 @@ import os
 
 class BaseTrainer(object):
     def __init__(self, config, net, optimizer=None, loss=None,):
+        self.config = config
         self.EPOCH = self.config.EPOCH
         self.BATCH_SIZE = self.config.BATCH_SIZE
         self.net = net

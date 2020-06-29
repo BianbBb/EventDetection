@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 
 from models.model import DBG, DBG_reduce_dim
-from utils.util import gen_mask, getBatchListTest, getProposalDataTest, save_proposals_result, getDatasetDict
+from utils.utils import gen_mask, getBatchListTest, getProposalDataTest, save_proposals_result, getDatasetDict
 from utils.parse_yaml import Config
 
 torch.backends.cudnn.enabled = False
