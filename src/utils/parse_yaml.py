@@ -41,16 +41,12 @@ class Config(object):
 
         """ Training Setting """
         training_info = config['training']
+        self.gpu_id = training_info['gpu_id']
         self.model_name = training_info['model_name']
+        self.resume = bool(training_info['resume'])
 
-        learning_rate = training_info['learning_rate']
-        lr_epochs = training_info['lr_epochs']
-        assert len(learning_rate) == len(lr_epochs)
-        self.learning_rate = []
-        for lr, n in zip(learning_rate, lr_epochs):
-            self.learning_rate.extend([float(lr)] * n)
-        self.epoch_num = len(self.learning_rate)
-        # self.epoch_num = training_info['epoch_num']
+        self.learning_rate = training_info['learning_rate']
+        self.epoch_num = training_info['epoch_num']
         self.batch_size = training_info['batch_size']
 
         """ Testing Setting """
