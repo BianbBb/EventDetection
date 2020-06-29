@@ -1,8 +1,9 @@
 # framework
 # assemble modules defined in other scripts
 
-from .dbg import DBG, DBG_reduce_dim
-from .detr import DETR
+from .dbg.dbg import DBG, DBG_reduce_dim
+from .detr.detr import DETR
+
 
 def network(config):
     model = None
