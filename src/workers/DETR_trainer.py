@@ -1,6 +1,4 @@
-
 # loss  # DETR的loss 二分图匹配损失 GIOU loss
-
 # train.py 调用dataloader、定义模型、optimizer，调用xxx_trainer 进行训练
 
 import time
