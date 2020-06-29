@@ -5,7 +5,7 @@ import time
 import torch
 import numpy as np
 import os
-from .BaseTrainer import BaseTrainer
+from .base_trainer import BaseTrainer
 from losses import IoU_loss
 
 

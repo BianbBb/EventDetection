@@ -1,21 +1,20 @@
 import random
-import os
 
 import torch
 import numpy as np
 
 
 class BaseTrainer(object):
-    def __init__(self, config, net, optimizer=None, loss=None, ):
+    def __init__(self, config, net, optimizer=None):
         self.set_seed(2020)
         self.config = config
         self.net = net
         self.device = "cuda:{}".format(self.config.gpu_id) if torch.cuda.is_available() else "cpu"
         # hyper params
         self.EPOCH = self.config.epoch_num
-        self.BATCH_SIZE = self.config.BATCH_SIZE
+        self.BATCH_SIZE = self.config.batch_size
         # checkpoint
-        self.exp_path = os.path.join(config.exp_dir, config.exp_name)
+        self.exp_path = self.config.train_pth_save_dir
         self.net.to(self.device)
 
         if self.config.resume:  # 从文件中读取模型参数
@@ -49,12 +48,6 @@ class BaseTrainer(object):
         raise NotImplementedError
 
     def val(self):
-        raise NotImplementedError
-
-    def get_losses(self):
-        raise NotImplementedError
-
-    def run_epoch(self):
         raise NotImplementedError
 
     def run(self):
