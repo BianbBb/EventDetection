@@ -5,7 +5,7 @@ import tqdm
 import torch
 import torch.nn as nn
 
-from model import DBG
+from models.model import DBG, DBG_reduce_dim
 from utils.util import gen_mask, getBatchListTest, getProposalDataTest, save_proposals_result, getDatasetDict
 from utils.parse_yaml import Config
 
@@ -46,7 +46,7 @@ Testing procedure
 def test():
     with torch.no_grad():
         """ setup DBG model and load weights """
-        net = DBG(feature_dim)
+        net = DBG_reduce_dim()
         state_dict = torch.load(os.path.join(pth_load_dir, 'checkpoint_best.pth'))
         net.load_state_dict(state_dict)
         net = nn.DataParallel(net, device_ids=[0]).cuda()

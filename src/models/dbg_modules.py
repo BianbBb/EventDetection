@@ -25,6 +25,7 @@ class DSBaseNet(nn.Module):
 
     def forward(self, x):
         x1, x2 = torch.split(x, self.feature_dim, 1)
+        print(x1.size(), x2.size())
         x1 = self.conv1_1(x1)
         x1 = self.conv1_2(x1)
         x1_feat = x1

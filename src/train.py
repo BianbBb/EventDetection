@@ -20,7 +20,7 @@ warnings.filterwarnings('ignore')
 
 # add resume train
 parser = argparse.ArgumentParser()
-parser.add_argument('-p', "--pretrained_model", type=str, default=None)
+parser.add_argument('-r', "--resume_model", type=str, default=None)
 args = parser.parse_args()
 
 config = Config()
@@ -137,7 +137,7 @@ def train(net, dl_iter, optimizer, epoch, training, writer=None):
 
         torch.save(net.module.state_dict(),
                    os.path.join(checkpoint_dir, 'checkpoint-%d.pth' % epoch))
-        if cost_val < net.module.basemodel.best_loss:
+        if cost_val < net.module.best_loss:
             net.module.best_loss = cost_val
 
             torch.save(net.module.state_dict(),
@@ -168,8 +168,8 @@ if __name__ == '__main__':
     if os.path.exists('logs/'):
         shutil.rmtree('logs/')
     model = network(config)
-    if args.pretrained_model is not None:
-        state_dict = torch.load(os.path.join(args.pretrained_model, 'checkpoint_best.pth'))
+    if args.resume_model is not None:
+        state_dict = torch.load(os.path.join(args.resume_model, 'checkpoint_best.pth'))
         model.load_state_dict(state_dict)
     model = nn.DataParallel(model, device_ids=[0]).cuda()
 
@@ -180,20 +180,20 @@ if __name__ == '__main__':
             Net_bias.append(p)
 
     DSBNet_weight = []
-    for name, p in model.module.basemodel.DSBNet.named_parameters():
+    for name, p in model.module.DSBNet.named_parameters():
         if 'bias' not in name:
             DSBNet_weight.append(p)
 
     PFG_weight = []
-    for name, p in model.module.basemodel.PropFeatGen.named_parameters():
+    for name, p in model.module.PropFeatGen.named_parameters():
         if 'bias' not in name:
             PFG_weight.append(p)
 
     ACR_TBC_weight = []
-    for name, p in model.module.basemodel.ACRNet.named_parameters():
+    for name, p in model.module.ACRNet.named_parameters():
         if 'bias' not in name:
             ACR_TBC_weight.append(p)
-    for name, p in model.module.basemodel.TBCNet.named_parameters():
+    for name, p in model.module.TBCNet.named_parameters():
         if 'bias' not in name:
             ACR_TBC_weight.append(p)
 
@@ -221,3 +221,54 @@ if __name__ == '__main__':
         train(model, val_dl, optimizer_, i, training=False, writer=writer)
         scheduler.step(i)
     writer.close()
+
+    '''
+    
+import cv2
+import os
+import torch
+import torch.utils.data as DATA
+import sys
+sys.path.append("..")
+import config as cfg
+from detect.dataload import DetDataset
+from backbone.Hourglass.large_hourglass import HourglassNet
+from detect.trainer import DetTrainer
+from detect.network import Network
+
+def main(para):
+    torch.manual_seed(para.SEED)
+    torch.backends.cudnn.benchmark = True
+
+    logger = para.logger
+    #device = para.device
+
+    logger.debug('------ Load Network ------')
+    network = Network(para)
+    net = network.net
+    # # from torchsummary import summary
+    # #     # summary(net.cuda(),(3,512,512),batch_size=8)
+    # #     # print(net)
+
+    logger.debug('------ Load Dataset ------')
+    Train_Data = DetDataset(para, flag='train', train_num=para.train_num)
+    train_loader = DATA.DataLoader(dataset=Train_Data, batch_size=para.BATCH_SIZE,
+                                   shuffle=True, drop_last=True, num_workers=10,)
+
+    Val_Data = DetDataset(para, flag='validation', train_num=para.train_num)
+    val_loader = DATA.DataLoader(dataset=Val_Data, batch_size=para.BATCH_SIZE,
+                                 shuffle=False, drop_last=True, num_workers=10,)
+
+    logger.debug('------     Train    ------')
+    Trainer = DetTrainer(para, net, train_loader=train_loader, val_loader=val_loader, optimizer='SGD')
+    Trainer.run()
+
+
+if __name__ == '__main__':
+    # os.environ["CUDA_VISIBLE_DEVICES"] = '0,1,2,3'
+    parameter = cfg.Detection_Parameter()
+    main(parameter)
+
+    
+    
+    '''
