@@ -3,7 +3,7 @@ import os
 
 
 class BaseTrainer(object):
-    def __init__(self, config, net, optimizer=None, loss=None,):
+    def __init__(self, config, net, optimizer=None, loss=None, ):
         self.config = config
         self.EPOCH = self.config.EPOCH
         self.BATCH_SIZE = self.config.BATCH_SIZE
@@ -16,7 +16,7 @@ class BaseTrainer(object):
         torch.backends.cudnn.benchmark = True
 
         self.exp_dir = config.exp_dir
-        self.exp_name = config.exp_name # +'best_checkpoin.pth'
+        self.exp_name = config.exp_name  # +'best_checkpoin.pth'
         self.exp_path = os.path.join(self.exp_dir, self.exp_name)
 
         # if len(self.para.gpu_ids) > 0:
@@ -35,12 +35,11 @@ class BaseTrainer(object):
         except FileNotFoundError:
             print('Can not find feature.pkl !')
 
-
     def set_optimizer(self):
         if self.optimizer_name is 'Adam':
             self.optimizer = torch.optim.Adam(
                 self.net.parameters(),
-                lr=self.config.lr,)
+                lr=self.config.lr, )
 
         elif self.optimizer_name is 'SGD':
             self.optimizer = torch.optim.SGD(
@@ -63,4 +62,3 @@ class BaseTrainer(object):
 
     def run(self):
         raise NotImplementedError
-

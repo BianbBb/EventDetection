@@ -1,8 +1,6 @@
-import torch
 import numpy as np
 from torch import nn
 from .modules import DSBaseNet, ProposalFeatureGeneration, ACRNet, TBCNet
-from .layers import conv1d
 
 
 class DBG(nn.Module):
@@ -54,18 +52,3 @@ class DBG(nn.Module):
             'prop_end': prop_end
         }
         return output_dict
-
-
-class DBG_reduce_dim(nn.Module):
-    def __init__(self, in_dim=1024, out_dim=400):
-        super(DBG_reduce_dim, self).__init__()
-        self.pre1 = conv1d(in_dim, out_dim // 2, 3)
-        self.pre2 = conv1d(in_dim, out_dim // 2, 3)
-        self.basemodel = DBG(feature_dim=400)
-
-    def forward(self, x):
-        p1 = self.pre1(x)  # (b,1024,100) ->(b,200,100)
-        p2 = self.pre2(x)
-        input = torch.cat([p1, p2], dim=1)  # (b,400,100)
-        output = self.basemodel(input)
-        return output

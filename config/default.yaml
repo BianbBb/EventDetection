@@ -35,7 +35,7 @@ saver:
   results_dir: ../results/ # 结果文件的位置
 
 training:
-  model_name: DBG  # DBG_reduce_dim or DBG
+  model_name: DBG  # DBG or DETR
   learning_rate: [1e-3, 1e-4, 1e-5]
   lr_epochs: [8, 8, 16]
   epoch_num: 10
