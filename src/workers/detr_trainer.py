@@ -7,6 +7,7 @@ import numpy as np
 import os
 from .base_trainer import BaseTrainer
 from losses import IoU_loss
+from utils.misc import AverageMeter
 
 
 class DetrTrainer(BaseTrainer):
