@@ -30,6 +30,7 @@ class Config(object):
         """ Dataset Setting """
         self.dataset_name = config['dataset']['dataset_name']
         dataset_info = config['dataset'][self.dataset_name]
+        self.num_classes = dataset_info['num_classes']
         self.feat_dir = dataset_info['feat_dir']
         self.video_info_file = dataset_info['video_info_file']
         self.test_info_file = dataset_info['test_info_file']
@@ -48,7 +49,7 @@ class Config(object):
         self.epoch_num = training_info['epoch_num']
         self.batch_size = training_info['batch_size']
         # transformer configure
-        transformer_info = config['training']['transformer']
+        transformer_info = config['transformer']
         self.enc_layers = int(transformer_info['enc_layers'])
         self.dec_layers = int(transformer_info['dec_layers'])
         self.dim_feedforward = int(transformer_info['dim_feedforward'])
@@ -57,6 +58,11 @@ class Config(object):
         self.nheads = int(transformer_info['nheads'])
         self.num_queries = int(transformer_info['num_queries'])
         self.pre_norm = bool(transformer_info['pre_norm'])
+        # matcher configure
+        matcher_info = config['matcher']
+        self.set_cost_class = float(matcher_info['set_cost_class'])
+        self.set_cost_bbox = float(matcher_info['set_cost_bbox'])
+        self.set_cost_giou = float(matcher_info['set_cost_giou'])
 
         """ Testing Setting """
         testing_info = config['testing']

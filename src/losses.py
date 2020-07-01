@@ -71,7 +71,6 @@ def IoU_loss(gt_iou, pred_iou, mask):
     return iou_loss
 
 
-
 class SetCriterion(nn.Module):
     """ This class computes the loss for DETR.
     The process happens in two steps:

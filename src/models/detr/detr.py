@@ -6,14 +6,12 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from .matcher import build_matcher
-from .segmentation import (DETRsegm, PostProcessPanoptic, PostProcessSegm)
 from .transformer import build_transformer
 
 
 class DETR(nn.Module):
     """ This is the DETR module that performs object detection """
-    def __init__(self, feature_dim, transformer, num_classes, num_queries, aux_loss=False):
+    def __init__(self, transformer, num_classes, num_queries, aux_loss=False):
         super(DETR, self).__init__()
         self.num_queries = num_queries
         self.transformer = transformer
@@ -21,7 +19,7 @@ class DETR(nn.Module):
         self.class_embed = nn.Linear(hidden_dim, num_classes + 1)
         self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
         self.query_embed = nn.Embedding(num_queries, hidden_dim)
-        self.input_proj = nn.Conv1d(feature_dim, hidden_dim, kernel_size=1)
+        self.input_proj = nn.Conv1d(100, hidden_dim, kernel_size=1)
         self.aux_loss = aux_loss
 
     def forward(self, samples: torch.Tensor):
@@ -66,7 +64,7 @@ class PostProcess(nn.Module):
         scores, labels = prob[..., :-1].max(-1)
 
         # convert to [x0, y0, x1, y1] format
-        boxes = box_ops.box_cxcywh_to_xyxy(out_bbox)
+        boxes = out_bbox
         # and from relative [0, 1] to absolute [0, height] coordinates
         img_h, img_w = target_sizes.unbind(1)
         scale_fct = torch.stack([img_w, img_h, img_w, img_h], dim=1)
@@ -93,42 +91,11 @@ class MLP(nn.Module):
 
 
 def build(config):
-
     transformer = build_transformer(config)
-
     model = DETR(
-        backbone,
         transformer,
-        num_classes=num_classes,
-        num_queries=args.num_queries,
-        aux_loss=args.aux_loss,
+        num_classes=53,
+        num_queries=config.num_queries,
+        aux_loss=False,
     )
-    if args.masks:
-        model = DETRsegm(model, freeze_detr=(args.frozen_weights is not None))
-    matcher = build_matcher(args)
-    weight_dict = {'loss_ce': 1, 'loss_bbox': args.bbox_loss_coef}
-    weight_dict['loss_giou'] = args.giou_loss_coef
-    if args.masks:
-        weight_dict["loss_mask"] = args.mask_loss_coef
-        weight_dict["loss_dice"] = args.dice_loss_coef
-    # TODO this is a hack
-    if args.aux_loss:
-        aux_weight_dict = {}
-        for i in range(args.dec_layers - 1):
-            aux_weight_dict.update({k + f'_{i}': v for k, v in weight_dict.items()})
-        weight_dict.update(aux_weight_dict)
-
-    losses = ['labels', 'boxes', 'cardinality']
-    if args.masks:
-        losses += ["masks"]
-    criterion = SetCriterion(num_classes, matcher=matcher, weight_dict=weight_dict,
-                             eos_coef=args.eos_coef, losses=losses)
-    criterion.to(device)
-    postprocessors = {'bbox': PostProcess()}
-    if args.masks:
-        postprocessors['segm'] = PostProcessSegm()
-        if args.dataset_file == "coco_panoptic":
-            is_thing_map = {i: i <= 90 for i in range(201)}
-            postprocessors["panoptic"] = PostProcessPanoptic(is_thing_map, threshold=0.85)
-
-    return model, criterion, postprocessors
+    return model

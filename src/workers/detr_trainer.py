@@ -6,8 +6,10 @@ import torch
 import numpy as np
 import os
 from .base_trainer import BaseTrainer
-from losses import IoU_loss
+from losses import IoU_loss, SetCriterion
 from utils.misc import AverageMeter
+from models.detr.matcher import build_matcher
+from models.detr.detr import PostProcess
 
 
 class DetrTrainer(BaseTrainer):
@@ -17,6 +19,21 @@ class DetrTrainer(BaseTrainer):
         self.exp_name = config.exp_name
         self.train_loader = train_loader
         self.val_loader = val_loader
+
+        weight_dict = {'loss_ce': 1, 'loss_bbox': 5}
+        weight_dict['loss_giou'] = 2
+        # TODO this is a hack
+        if config.aux_loss:
+            aux_weight_dict = {}
+            for i in range(config.dec_layers - 1):
+                aux_weight_dict.update({k + f'_{i}': v for k, v in weight_dict.items()})
+            weight_dict.update(aux_weight_dict)
+        matcher = build_matcher(config)
+        postprocessors = {'bbox': PostProcess()}
+        losses = ['labels', 'boxes', 'cardinality']
+        self.criterion = SetCriterion(config.num_classes, matcher=matcher, weight_dict=weight_dict,
+                                 eos_coef=config.eos_coef, losses=losses)
+        self.criterion.to(self.device)
 
         self.BEST_VAL_LOSS = None  # 在验证集上的最好结果
         self.VAL_LOSS = None
