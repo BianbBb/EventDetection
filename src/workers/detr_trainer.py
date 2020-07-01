@@ -13,39 +13,34 @@ from models.detr.detr import PostProcess
 
 
 class DetrTrainer(BaseTrainer):
-    def __init__(self, config, net, train_loader, val_loader=None, optimizer=None):
+    def __init__(self, config, net, train_loader, val_loader=None, optimizer=None, writer=None):
         super(DetrTrainer, self).__init__(config, net, optimizer, )
-        self.exp_dir = config.exp_dir
-        self.exp_name = config.exp_name
+        # dataset
         self.train_loader = train_loader
         self.val_loader = val_loader
-
-        weight_dict = {'loss_ce': 1, 'loss_bbox': 5}
-        weight_dict['loss_giou'] = 2
-        # TODO this is a hack
-        if config.aux_loss:
-            aux_weight_dict = {}
-            for i in range(config.dec_layers - 1):
-                aux_weight_dict.update({k + f'_{i}': v for k, v in weight_dict.items()})
-            weight_dict.update(aux_weight_dict)
-        matcher = build_matcher(config)
-        postprocessors = {'bbox': PostProcess()}
-        losses = ['labels', 'boxes', 'cardinality']
-        self.criterion = SetCriterion(config.num_classes, matcher=matcher, weight_dict=weight_dict,
-                                 eos_coef=config.eos_coef, losses=losses)
-        self.criterion.to(self.device)
+        # loss
+        self.aux_loss = config.aux_loss
+        self.criterion = self.init_criterion()
+        self.postprocessors = {'bbox': PostProcess()}
 
         self.BEST_VAL_LOSS = None  # 在验证集上的最好结果
         self.VAL_LOSS = None
-
         self.loss = IoU_loss
 
-        self.config = config
-
-
-    def freeze_layer(self, Freeze_List):
-        pass
-
+    def init_criterion(self):
+        weight_dict = {'loss_ce': 1, 'loss_bbox': 5, 'loss_giou': 2}
+        # TODO this is a hack
+        if self.aux_loss:
+            aux_weight_dict = {}
+            for i in range(self.config.dec_layers - 1):
+                aux_weight_dict.update({k + f'_{i}': v for k, v in weight_dict.items()})
+            weight_dict.update(aux_weight_dict)
+        matcher = build_matcher(self.config)
+        losses = ['labels', 'boxes', 'cardinality']
+        criterion = SetCriterion(self.config.num_classes, matcher=matcher, weight_dict=weight_dict,
+                                 eos_coef=self.config.eos_coef, losses=losses)
+        criterion.to(self.device)
+        return criterion
 
     def run(self):
         for epoch in range(self.config.EPOCH):
@@ -64,11 +59,10 @@ class DetrTrainer(BaseTrainer):
                     self.BEST_VAL_LOSS = np.mean(self.VAL_LOSS)
                     self.save_model()
 
-
     def save_model(self):
         pkl_save_name = 'nut2-{}-{:.3f}.pkl'.format(
             time.strftime("%m%d-%H%M", time.localtime()), self.BEST_VAL_LOSS)
-        pkl_save_path = os.path.join(self.exp_dir, pkl_save_name)
+        pkl_save_path = os.path.join(self.exp_path, pkl_save_name)
         torch.save(self.net.state_dict(), pkl_save_path)
 
     def train(self):
@@ -78,7 +72,7 @@ class DetrTrainer(BaseTrainer):
     def val(self):
         return self.run_epoch(self.val_loader, is_train=False)
 
-    def run_epoch(self, data_loader, is_train=True, epoch=0 ):
+    def run_epoch(self, data_loader, is_train=True, epoch=0):
         if is_train:
             self.net.train()
         else:
@@ -111,12 +105,12 @@ class DetrTrainer(BaseTrainer):
 
             if step % 100 == 0:
                 print('| Step: {:<4d} | Time: {:.2f} | Loss: {:.4f} '
-                                 '| hm loss: {:.4f} | wh loss: {:.4f} '.format(
+                      '| hm loss: {:.4f} | wh loss: {:.4f} '.format(
                     step, step_time.avg, avg_loss_stats['loss'].avg,
-                           avg_loss_stats['hm_loss'].avg,avg_loss_stats['wh_loss'].avg,))
+                    avg_loss_stats['hm_loss'].avg, avg_loss_stats['wh_loss'].avg, ))
 
         if not is_train:
             self.VAL_LOSS = avg_loss_stats['loss'].avg
         ret = {k: v.avg for k, v in avg_loss_stats.items()}
-        print('| Epoch Time: {:.2f} '.format(time.time()-t0))
+        print('| Epoch Time: {:.2f} '.format(time.time() - t0))
         return ret, results

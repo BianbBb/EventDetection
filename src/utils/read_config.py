@@ -48,6 +48,7 @@ class Config(object):
         self.learning_rate = training_info['learning_rate']
         self.epoch_num = training_info['epoch_num']
         self.batch_size = training_info['batch_size']
+        self.aux_loss = False
         # transformer configure
         transformer_info = config['transformer']
         self.enc_layers = int(transformer_info['enc_layers'])
