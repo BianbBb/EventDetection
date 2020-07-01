@@ -9,7 +9,7 @@ import pandas as pd
 import tqdm
 
 from utils.utils import getDatasetDict
-from utils.parse_yaml import Config
+from utils.read_config import Config
 
 config = Config()
 

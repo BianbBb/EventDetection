@@ -1,15 +1,20 @@
 import os
 import shutil
 
-
 import torch
 from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
 
 from models.model import network
-from utils.parse_yaml import Config
+from utils.read_config import Config
 from workers.dbg_trainer import DBGTrainer
 from data_loader import MyDataSet
+from argparse import ArgumentParser
+
+parser = ArgumentParser(description="training config")
+parser.add_argument('-m', '--model', type='str', default='dbg')
+
+args = parser.parse_args()
 
 
 # prepare for training

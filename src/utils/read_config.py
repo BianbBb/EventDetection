@@ -44,10 +44,19 @@ class Config(object):
         self.gpu_id = training_info['gpu_id']
         self.model_name = training_info['model_name']
         self.resume = bool(training_info['resume'])
-
         self.learning_rate = training_info['learning_rate']
         self.epoch_num = training_info['epoch_num']
         self.batch_size = training_info['batch_size']
+        # transformer configure
+        transformer_info = config['training']['transformer']
+        self.enc_layers = int(transformer_info['enc_layers'])
+        self.dec_layers = int(transformer_info['dec_layers'])
+        self.dim_feedforward = int(transformer_info['dim_feedforward'])
+        self.hidden_dim = int(transformer_info['hidden_dim'])
+        self.dropout = float(transformer_info['dropout'])
+        self.nheads = int(transformer_info['nheads'])
+        self.num_queries = int(transformer_info['num_queries'])
+        self.pre_norm = bool(transformer_info['pre_norm'])
 
         """ Testing Setting """
         testing_info = config['testing']
