@@ -43,14 +43,17 @@ class Config(object):
         """ Training Setting """
         training_info = config['training']
         self.gpu_id = training_info['gpu_id']
-        self.model_name = training_info['model_name']
         self.resume = bool(training_info['resume'])
         self.learning_rate = training_info['learning_rate']
         self.epoch_num = training_info['epoch_num']
         self.batch_size = training_info['batch_size']
         self.aux_loss = False
+
+        """model setting"""
+        model_info = config['model']
+        self.model_name = model_info['model_name']
         # transformer configure
-        transformer_info = config['transformer']
+        transformer_info = model_info['transformer']
         self.enc_layers = int(transformer_info['enc_layers'])
         self.dec_layers = int(transformer_info['dec_layers'])
         self.dim_feedforward = int(transformer_info['dim_feedforward'])
@@ -60,7 +63,7 @@ class Config(object):
         self.num_queries = int(transformer_info['num_queries'])
         self.pre_norm = bool(transformer_info['pre_norm'])
         # matcher configure
-        matcher_info = config['matcher']
+        matcher_info = model_info['matcher']
         self.set_cost_class = float(matcher_info['set_cost_class'])
         self.set_cost_bbox = float(matcher_info['set_cost_bbox'])
         self.set_cost_giou = float(matcher_info['set_cost_giou'])
@@ -78,7 +81,7 @@ class Config(object):
 
         # Train
         timestamp = time.strftime('%m%d-%H%M', time.localtime())
-        train_pth_save_dir = '{}-{}-{}'.format(training_info['model_name'], timestamp, self.dataset_name)
+        train_pth_save_dir = '{}-{}-{}'.format(self.model_name, timestamp, self.dataset_name)
         self.train_pth_save_dir = os.path.join(self.exp_dir, train_pth_save_dir)
 
         # Test
