@@ -11,6 +11,7 @@ from workers.dbg_trainer import DBGTrainer
 from data_loader import MyDataSet
 from argparse import ArgumentParser
 
+
 parser = ArgumentParser(description="training config")
 parser.add_argument('-m', '--model', type='str', default='dbg')
 
