@@ -7,12 +7,14 @@ import torch.nn.functional as F
 from torch import nn
 
 from .transformer import build_transformer
+from .position_encoding import PositionEmbedding
 
 
 class DETR(nn.Module):
     """ This is the DETR module that performs object detection """
-    def __init__(self, transformer, num_classes, num_queries, aux_loss=False):
+    def __init__(self, position_encoding, transformer, num_classes, num_queries, aux_loss=False):
         super(DETR, self).__init__()
+        self.position_encoding = position_encoding
         self.num_queries = num_queries
         self.transformer = transformer
         hidden_dim = transformer.d_model
@@ -22,17 +24,17 @@ class DETR(nn.Module):
         self.input_proj = nn.Conv1d(100, hidden_dim, kernel_size=1)
         self.aux_loss = aux_loss
 
-    def forward(self, samples: torch.Tensor):
-        features, pos = self.backbone(samples)
-        src, mask = features[-1].decompose()
-        assert mask is not None
-        hs = self.transformer(self.input_proj(src), mask, self.query_embed.weight, pos[-1])[0]
+    def forward(self, x):
+        input_tensor = self.input_proj(x)
+        pos_embed = self.position_encoding(input_tensor) - input_tensor
+        hs = self.transformer(input_tensor, None, self.query_embed.weight, pos_embed)[0]
 
         outputs_class = self.class_embed(hs)
         outputs_coord = self.bbox_embed(hs).sigmoid()
         out = {'pred_logits': outputs_class[-1], 'pred_boxes': outputs_coord[-1]}
         if self.aux_loss:
             out['aux_outputs'] = self._set_aux_loss(outputs_class, outputs_coord)
+        print(out['pred_logits'].size(), out['pred_boxes'].size())
         return out
 
     @torch.jit.unused
@@ -48,13 +50,6 @@ class PostProcess(nn.Module):
     """ This module converts the model's output into the format expected by the coco api"""
     @torch.no_grad()
     def forward(self, outputs, target_sizes):
-        """ Perform the computation
-        Parameters:
-            outputs: raw outputs of the model
-            target_sizes: tensor of dimension [batch_size x 2] containing the size of each images of the batch
-                          For evaluation, this must be the original image size (before any data augmentation)
-                          For visualization, this should be the image size after data augment, but before padding
-        """
         out_logits, out_bbox = outputs['pred_logits'], outputs['pred_boxes']
 
         assert len(out_logits) == len(target_sizes)
@@ -91,8 +86,10 @@ class MLP(nn.Module):
 
 
 def build(config):
+    position_encoding = PositionEmbedding(256, 1024)
     transformer = build_transformer(config)
     model = DETR(
+        position_encoding,
         transformer,
         num_classes=53,
         num_queries=config.num_queries,
