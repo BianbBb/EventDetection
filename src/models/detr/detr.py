@@ -15,11 +15,10 @@ class DETR(nn.Module):
     def __init__(self, position_encoding, transformer, num_classes, num_queries, aux_loss=False):
         super(DETR, self).__init__()
         self.position_encoding = position_encoding
-        self.num_queries = num_queries
         self.transformer = transformer
         hidden_dim = transformer.d_model
         self.class_embed = nn.Linear(hidden_dim, num_classes + 1)
-        self.bbox_embed = MLP(hidden_dim, hidden_dim, 4, 3)
+        self.bbox_embed = MLP(hidden_dim, hidden_dim, 2, 3)
         self.query_embed = nn.Embedding(num_queries, hidden_dim)
         self.input_proj = nn.Conv1d(100, hidden_dim, kernel_size=1)
         self.aux_loss = aux_loss
@@ -34,7 +33,6 @@ class DETR(nn.Module):
         out = {'pred_logits': outputs_class[-1], 'pred_boxes': outputs_coord[-1]}
         if self.aux_loss:
             out['aux_outputs'] = self._set_aux_loss(outputs_class, outputs_coord)
-        print(out['pred_logits'].size(), out['pred_boxes'].size())
         return out
 
     @torch.jit.unused
@@ -85,7 +83,7 @@ class MLP(nn.Module):
         return x
 
 
-def build(config):
+def build_detr(config):
     position_encoding = PositionEmbedding(256, 1024)
     transformer = build_transformer(config)
     model = DETR(

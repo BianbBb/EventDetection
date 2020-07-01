@@ -8,7 +8,7 @@ from tensorboardX import SummaryWriter
 from models.model import network
 from utils.read_config import Config
 from workers.dbg_trainer import DBGTrainer
-from data_loader import MyDataSet
+from data_loader import DBGDataSet
 from argparse import ArgumentParser
 
 parser = ArgumentParser(description="training config")
@@ -26,9 +26,9 @@ if os.path.exists('logs/'):
 config = Config()
 
 # dataset
-train_dl = DataLoader(MyDataSet(config, mode='training'), batch_size=config.batch_size,
+train_dl = DataLoader(DBGDataSet(config, mode='training'), batch_size=config.batch_size,
                       shuffle=True, num_workers=0, drop_last=True, pin_memory=True)
-val_dl = DataLoader(MyDataSet(config, mode='validation'), batch_size=config.batch_size,
+val_dl = DataLoader(DBGDataSet(config, mode='validation'), batch_size=config.batch_size,
                     shuffle=False, num_workers=0, drop_last=True, pin_memory=True)
 
 # model
