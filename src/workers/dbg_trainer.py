@@ -176,6 +176,7 @@ class DBGTrainer(BaseTrainer):
                 % (self.epoch, cost_val, loss_action_val, loss_start_val, loss_end_val, loss_iou_val))
         else:
             self.logx.metric('val', metrics, self.epoch)
+            self.VAL_LOSS = cost_val
             self.logx.msg(
                 "Epoch-%d Validation Loss: "
                 "Total - %.05f, Action - %.05f, Start - %.05f, End - %.05f, IoU - %.05f"
@@ -184,4 +185,4 @@ class DBGTrainer(BaseTrainer):
             'epoch': self.epoch+1,
             'state_dict': self.net.state_dict()
         }
-        self.logx.save_model(save_dict, metric=cost_val, epoch=self.epoch, delete_old=False)
+        self.logx.save_model(save_dict, metric=self.VAL_LOSS, epoch=self.epoch, delete_old=False)
