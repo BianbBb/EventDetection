@@ -7,6 +7,7 @@ import numpy as np
 class MyDataSet(Dataset):
 
     def __init__(self, config, mode='training'):
+
         video_info_file = config.video_info_file
         video_filter = config.video_filter
         data_aug = config.data_aug
@@ -23,6 +24,10 @@ class MyDataSet(Dataset):
 
         self.mode = mode
         self.video_dict = video_dict
+
+        # if dbg： 不需要获得class_index
+        with open()
+        self.classes_index
 
         video_num = len(list(video_dict.keys()))
 
@@ -61,5 +66,7 @@ class MyDataSet(Dataset):
         gt_end = data_dict['gt_end'][idx].unsqueeze(0)
         feature = data_dict['feature'][idx]
         iou_label = data_dict['iou_label'][idx].unsqueeze(0)
+
+        # if dbg：不需要转换
         return gt_action, gt_start, gt_end, feature, iou_label
 
