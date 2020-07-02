@@ -14,22 +14,21 @@ class DETR(nn.Module):
     """ This is the DETR module that performs object detection """
     def __init__(self, position_encoding, transformer, num_classes, num_queries, aux_loss=False):
         super(DETR, self).__init__()
-        self.position_encoding = position_encoding
-        self.transformer = transformer
         hidden_dim = transformer.d_model
-        self.class_embed = nn.Linear(hidden_dim, num_classes + 1)
-        self.bbox_embed = MLP(hidden_dim, hidden_dim, 2, 3)
-        self.query_embed = nn.Embedding(num_queries, hidden_dim)
-        self.input_proj = nn.Conv1d(100, hidden_dim, kernel_size=1)
-        self.aux_loss = aux_loss
+        self.input_proj = nn.Conv1d(100, hidden_dim, kernel_size=1)  # pre-process layer
+        self.position_encoding = position_encoding  # position encoding layer, get encoding added to input
+        self.transformer = transformer  # transformer layer
+        self.query_embed = nn.Embedding(num_queries, hidden_dim)  # object query
+        self.class_embed = nn.Linear(hidden_dim, num_classes + 1)  # classifier for action
+        self.proposal_embed = MLP(hidden_dim, hidden_dim, 2, 3)  # proposal regression
+        self.aux_loss = aux_loss  # if use aux loss
 
     def forward(self, x):
         input_tensor = self.input_proj(x)
         pos_embed = self.position_encoding(input_tensor) - input_tensor
         hs = self.transformer(input_tensor, None, self.query_embed.weight, pos_embed)[0]
-
         outputs_class = self.class_embed(hs)
-        outputs_coord = self.bbox_embed(hs).sigmoid()
+        outputs_coord = self.proposal_embed(hs).sigmoid()
         out = {'pred_logits': outputs_class[-1], 'pred_boxes': outputs_coord[-1]}
         if self.aux_loss:
             out['aux_outputs'] = self._set_aux_loss(outputs_class, outputs_coord)
@@ -45,7 +44,6 @@ class DETR(nn.Module):
 
 
 class PostProcess(nn.Module):
-    """ This module converts the model's output into the format expected by the coco api"""
     @torch.no_grad()
     def forward(self, outputs, target_sizes):
         out_logits, out_bbox = outputs['pred_logits'], outputs['pred_boxes']
@@ -84,7 +82,7 @@ class MLP(nn.Module):
 
 
 def build_detr(config):
-    position_encoding = PositionEmbedding(256, 1024)
+    position_encoding = PositionEmbedding(config.hidden_dim, config.feature_dim)
     transformer = build_transformer(config)
     model = DETR(
         position_encoding,

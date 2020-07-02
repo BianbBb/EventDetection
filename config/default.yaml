@@ -34,6 +34,7 @@ dataset:
 saver:
   exp_dir: ../exp
   results_dir: ../results/ # 结果文件的位置
+  log_dir: ../logs
 
 training:
   gpu_id: 0
@@ -43,7 +44,7 @@ training:
   batch_size: 16
 
 model:
-  model_name: DETR  # DBG or DETR
+  model_name: DBG  # DBG or DETR
 
   transformer:
     enc_layers: 16 # Number of encoding layers in the transformer

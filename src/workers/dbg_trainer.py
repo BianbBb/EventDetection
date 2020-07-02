@@ -5,6 +5,7 @@ import warnings
 import torch
 import numpy as np
 from tqdm import tqdm
+from runx.logx import logx
 
 from .base_trainer import BaseTrainer
 
@@ -15,7 +16,7 @@ from losses import binary_logistic_loss, IoU_loss
 
 
 class DBGTrainer(BaseTrainer):
-    def __init__(self, config, net, train_loader, val_loader=None, optimizer=None, writer=None):
+    def __init__(self, config, net, train_loader, val_loader=None, optimizer=None):
         super(DBGTrainer, self).__init__(config, net, optimizer)
         # dataset
         self.train_loader = train_loader
@@ -26,9 +27,11 @@ class DBGTrainer(BaseTrainer):
         self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=50, gamma=0.1)
         self.epoch = 0
         # loss
-        self.writer = writer
         self.BEST_VAL_LOSS = None  # 在验证集上的最好结果
         self.VAL_LOSS = None
+        # log
+        self.logx = logx
+        self.logx.initialize(logdir=config.log_dir, coolname=True, tensorboard=True)
 
     def init_mask(self):
         mask = gen_mask(self.config.tscale)
@@ -80,16 +83,15 @@ class DBGTrainer(BaseTrainer):
             self.train()
             self.val()
             self.scheduler.step(i)
-        self.writer.close()
 
     def train(self):
-        return self.run_epoch(self.train_loader, training=True, writer=self.writer)
+        return self.run_epoch(self.train_loader, training=True)
 
     @torch.no_grad()
     def val(self):
-        return self.run_epoch(self.val_loader, training=False, writer=self.writer)
+        return self.run_epoch(self.val_loader, training=False)
 
-    def run_epoch(self, data_loader, training, writer):
+    def run_epoch(self, data_loader, training):
         if training:
             self.net.train()
         else:
@@ -140,7 +142,6 @@ class DBGTrainer(BaseTrainer):
             )
 
             # total loss
-            # cost = 2.0 * loss_action + loss_iou + loss_start + loss_end
             cost = 2.0 * loss_action + loss_iou + loss_start + loss_end
             if training:
                 self.optimizer.zero_grad()
@@ -159,32 +160,28 @@ class DBGTrainer(BaseTrainer):
         loss_end_val /= (n_iter + 1)
         cost_val /= (n_iter + 1)
 
+        metrics = {
+            'total_loss': cost_val,
+            'action_loss': loss_action_val,
+            'start_loss': loss_start_val,
+            'end_loss': loss_end_val,
+            'iou_loss': loss_iou_val,
+        }
+
         if training:
-            writer.add_scalars("data/total", {'training': cost_val}, self.epoch)
-            writer.add_scalars("data/action", {'training': loss_action_val}, self.epoch)
-            writer.add_scalars("data/start", {'training': loss_start_val}, self.epoch)
-            writer.add_scalars("data/end", {'training': loss_end_val}, self.epoch)
-            writer.add_scalars("data/iou", {'training': loss_iou_val}, self.epoch)
-            print(
+            self.logx.metric('train', metrics, self.epoch)
+            self.logx.msg(
                 "Epoch-%d Train      Loss: "
                 "Total - %.05f, Action - %.05f, Start - %.05f, End - %.05f, IoU - %.05f"
                 % (self.epoch, cost_val, loss_action_val, loss_start_val, loss_end_val, loss_iou_val))
         else:
-            writer.add_scalars("data/total", {'validation': cost_val}, self.epoch)
-            writer.add_scalars("data/action", {'validation': loss_action_val}, self.epoch)
-            writer.add_scalars("data/start", {'validation': loss_start_val}, self.epoch)
-            writer.add_scalars("data/end", {'validation': loss_end_val}, self.epoch)
-            writer.add_scalars("data/iou", {'validation': loss_iou_val}, self.epoch)
-            print(
+            self.logx.metric('val', metrics, self.epoch)
+            self.logx.msg(
                 "Epoch-%d Validation Loss: "
                 "Total - %.05f, Action - %.05f, Start - %.05f, End - %.05f, IoU - %.05f"
                 % (self.epoch, cost_val, loss_action_val, loss_start_val, loss_end_val, loss_iou_val))
-
-            torch.save(self.net.state_dict(),
-                       os.path.join(self.exp_path, 'checkpoint-%d.pth' % self.epoch))
-            if cost_val < self.net.best_loss:
-                self.net.best_loss = cost_val
-
-                torch.save(self.net.state_dict(),
-                           os.path.join(self.exp_path, 'checkpoint_best.pth'))
-                print("model saved in ", self.exp_path)
+        save_dict = {
+            'epoch': self.epoch+1,
+            'state_dict': self.net.state_dict()
+        }
+        self.logx.save_model(save_dict, metric=cost_val, epoch=self.epoch, delete_old=False)
