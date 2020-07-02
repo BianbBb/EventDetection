@@ -1,7 +1,7 @@
 import time
 import os
 import datetime
-
+import tqdm
 import torch
 import numpy as np
 from runx.logx import logx
@@ -79,11 +79,11 @@ class DetrTrainer(BaseTrainer):
         logx.msg('Training time {}'.format(total_time_str))
 
     def train(self):
-        return self.run_epoch(self.train_loader, is_train=True)
+        self.run_epoch(self.train_loader, is_train=True)
 
     @torch.no_grad()
     def val(self):
-        return self.run_epoch(self.val_loader, is_train=False)
+        self.run_epoch(self.val_loader, is_train=False)
 
     def run_epoch(self, data_loader, is_train=True, epoch=0):
         if is_train:
@@ -95,38 +95,47 @@ class DetrTrainer(BaseTrainer):
         t1 = time.time()  # step timer
         step_time = AverageMeter()
         results = {}
-        avg_loss_stats = {L: AverageMeter() for L in self.loss_stats}
-        for step, batch in enumerate(data_loader):
-
+        # avg_loss_stats = {L: AverageMeter() for L in self.loss_stats}
+        for n_iter, (gt_action, gt_start, gt_end, feature, iou_label) in tqdm(enumerate(data_loader)):
             torch.cuda.empty_cache()
-            for k in batch:
-                batch[k] = batch[k].to(device=self.config.device, non_blocking=True)
+            gt_action = gt_action.to(device=self.device, non_blocking=True)
+            gt_start = gt_start.to(device=self.device, non_blocking=True)
+            gt_end = gt_end.to(device=self.device, non_blocking=True)
+            feature = feature.to(device=self.device, non_blocking=True)
+            # iou_label = iou_label.to(device=self.device, non_blocking=True)
 
-            output, loss, loss_stats = self.model_with_loss(batch)
-            loss = loss.mean()
+            output = self.net(feature)
+            target = {"boxes":[gt_start,gt_end], "labels":gt_action}
+            loss_dict = self.criterion(output,target)
+            weight_dict = self.criterion.weight_dict
+            losses = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
 
             if is_train:
                 self.optimizer.zero_grad()
-                loss.backward()
+                losses.backward()
+                # TODO: max_norm 的作用？
+                # if max_norm > 0:
+                #     torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
                 self.optimizer.step()
 
             step_time.update(time.time() - t1)
             t1 = time.time()
 
-            for l in avg_loss_stats:
-                avg_loss_stats[l].update(loss_stats[l].mean().item(), batch['input'].size(0))
+            # TODO：print loss 信息， self.VAL_LOSS = xx 用于判断是否保存模型
+            # for l in avg_loss_stats:
+            #     avg_loss_stats[l].update(loss_stats[l].mean().item(), batch['input'].size(0))
+            #
+            # if step % 100 == 0:
+            #     print('| Step: {:<4d} | Time: {:.2f} | Loss: {:.4f} '
+            #           '| hm loss: {:.4f} | wh loss: {:.4f} '.format(
+            #         step, step_time.avg, avg_loss_stats['loss'].avg,
+            #         avg_loss_stats['hm_loss'].avg, avg_loss_stats['wh_loss'].avg, ))
 
-            if step % 100 == 0:
-                print('| Step: {:<4d} | Time: {:.2f} | Loss: {:.4f} '
-                      '| hm loss: {:.4f} | wh loss: {:.4f} '.format(
-                    step, step_time.avg, avg_loss_stats['loss'].avg,
-                    avg_loss_stats['hm_loss'].avg, avg_loss_stats['wh_loss'].avg, ))
+        # if not is_train:
+        #     self.VAL_LOSS = avg_loss_stats['loss'].avg
+        # ret = {k: v.avg for k, v in avg_loss_stats.items()}
+        # print('| Epoch Time: {:.2f} '.format(time.time() - t0))
 
-        if not is_train:
-            self.VAL_LOSS = avg_loss_stats['loss'].avg
-        ret = {k: v.avg for k, v in avg_loss_stats.items()}
-        print('| Epoch Time: {:.2f} '.format(time.time() - t0))
-        return ret, results
 
     def save_model(self):
         torch.save(self.net.state_dict(),

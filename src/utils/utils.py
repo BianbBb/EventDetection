@@ -267,12 +267,14 @@ def getFullData(config, video_dict, last_channel=True, training=True):
         batch_label_end.append(match_score_end)
 
         # gen iou_labels
-        iou_labels = np.zeros([tscale, tscale])
+        '''
+         iou_labels = np.zeros([tscale, tscale])
         for i in range(tscale):
             for j in range(i, tscale):
                 iou_labels[i, j] = np.max(
                     iou_with_anchors(i * tgap, (j + 1) * tgap, gt_xmins, gt_xmaxs))
         batch_anchor_iou.append(iou_labels)
+        '''
 
     dataDict = {
         "gt_action": batch_label_action,
