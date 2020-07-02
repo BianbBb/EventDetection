@@ -30,7 +30,7 @@ def binary_logistic_loss(gt_scores, pred_anchors):
     return loss
 
 
-def IoU_loss(gt_iou, pred_iou, mask):
+def IoU_loss(gt_iou, pred_iou, mask):  #todo :
     """
     Calculate IoU loss
     :param gt_iou: gt IoU tensor
