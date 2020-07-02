@@ -75,8 +75,8 @@ def IoU_loss(gt_iou, pred_iou, mask):  #todo :
 class SetCriterion(nn.Module):
     """ This class computes the loss for DETR.
     The process happens in two steps:
-        1) we compute hungarian assignment between ground truth boxes and the outputs of the model
-        2) we supervise each pair of matched ground-truth / prediction (supervise class and box)
+        1) we compute hungarian assignment between ground truth segments the outputs of the model
+        2) we supervise each pair of matched ground-truth / prediction (supervise class and segment)
     """
     def __init__(self, num_classes, matcher, weight_dict, eos_coef, losses):
         """ Create the criterion.
@@ -97,9 +97,9 @@ class SetCriterion(nn.Module):
         empty_weight[-1] = self.eos_coef
         self.register_buffer('empty_weight', empty_weight)
 
-    def loss_classes(self, outputs, targets, indices, num_boxes, log=True):
+    def loss_classes(self, outputs, targets, indices, num_segments, log=True):
         """Classification loss (NLL)
-        targets dicts must contain the key "labels" containing a tensor of dim [nb_target_boxes]
+        targets dicts must contain the key "classes" containing a tensor of dim [nb_target_segments]
         """
         assert 'classes' in outputs
         pred_classes = outputs['classes']
@@ -119,20 +119,20 @@ class SetCriterion(nn.Module):
         return losses
 
     @torch.no_grad()
-    def loss_cardinality(self, outputs, targets, indices, num_boxes):
-        """ Compute the cardinality error, ie the absolute error in the number of predicted non-empty boxes
+    def loss_cardinality(self, outputs, targets, indices, num_segments):
+        """ Compute the cardinality error, ie the absolute error in the number of predicted non-empty segments
         This is not really a loss, it is intended for logging purposes only. It doesn't propagate gradients
         """
         pred_logits = outputs['pred_logits']
         device = pred_logits.device
-        tgt_lengths = torch.as_tensor([len(v["labels"]) for v in targets], device=device)
+        tgt_lengths = torch.as_tensor([len(v["classes"]) for v in targets], device=device)
         # Count the number of predictions that are NOT "no-object" (which is the last class)
         card_pred = (pred_logits.argmax(-1) != pred_logits.shape[-1] - 1).sum(1)
         card_err = F.l1_loss(card_pred.float(), tgt_lengths.float())
         losses = {'cardinality_error': card_err}
         return losses
 
-    def loss_segments(self, outputs, targets, indices, num_boxes):
+    def loss_segments(self, outputs, targets, indices, num_segments):
         """Compute the losses related to the bounding segments, the L1 regression loss and the DIoU loss
            targets dicts must contain the key "segments" containing a tensor of dim [100, 2]
            The target segments are expected in format (start, end), normalized by the feature length.
@@ -145,11 +145,10 @@ class SetCriterion(nn.Module):
         loss_segments = F.l1_loss(pred_segments, pred_segments, reduction='none')
 
         losses = {}
-        losses['loss_segments'] = loss_segments.sum() / num_boxes
+        losses['loss_segments'] = loss_segments.sum() / num_segments
 
         loss_diou = ((1 - self.distance_iou(pred_segments,target_segments))/2).sum()
-        losses['loss_diou'] = loss_diou.sum() / num_boxes
-        ## box 坐标转换的一些操作 修改成一维
+        losses['loss_diou'] = loss_diou.sum() / num_segments
         return losses
 
     def distance_iou(self, seg1, seg2): # 值域为[-1,1]
@@ -164,9 +163,9 @@ class SetCriterion(nn.Module):
 
     '''
     # 图像分割的loss
-    def loss_masks(self, outputs, targets, indices, num_boxes):
+    def loss_masks(self, outputs, targets, indices, num_segments):
         """Compute the losses related to the masks: the focal loss and the dice loss.
-           targets dicts must contain the key "masks" containing a tensor of dim [nb_target_boxes, h, w]
+           targets dicts must contain the key "masks" containing a tensor of dim [nb_target_segments, h, w]
         """
         assert "pred_masks" in outputs
 
@@ -188,8 +187,8 @@ class SetCriterion(nn.Module):
         target_masks = target_masks[tgt_idx].flatten(1)
 
         losses = {
-            "loss_mask": sigmoid_focal_loss(src_masks, target_masks, num_boxes),
-            "loss_dice": dice_loss(src_masks, target_masks, num_boxes),
+            "loss_mask": sigmoid_focal_loss(src_masks, target_masks, num_segments),
+            "loss_dice": dice_loss(src_masks, target_masks, num_segments),
         }
         return losses
     
@@ -208,7 +207,7 @@ class SetCriterion(nn.Module):
         tgt_idx = torch.cat([tgt for (_, tgt) in indices])
         return batch_idx, tgt_idx
 
-    def get_loss(self, loss, outputs, targets, indices, num_boxes, **kwargs):
+    def get_loss(self, loss, outputs, targets, indices, num_segments, **kwargs):
         loss_map = {
             'classes': self.loss_classes,
             'cardinality': self.loss_cardinality,
@@ -216,7 +215,7 @@ class SetCriterion(nn.Module):
             # 'masks': self.loss_masks
         }
         assert loss in loss_map, f'do you really want to compute {loss} loss?'
-        return loss_map[loss](outputs, targets, indices, num_boxes, **kwargs)
+        return loss_map[loss](outputs, targets, indices, num_segments, **kwargs)
 
     def forward(self, outputs, targets):
         """ This performs the loss computation.
@@ -230,17 +229,17 @@ class SetCriterion(nn.Module):
         # Retrieve the matching between the outputs of the last layer and the targets
         indices = self.matcher(outputs_without_aux, targets)
 
-        # Compute the average number of target boxes accross all nodes, for normalization purposes
-        num_boxes = sum(len(t["labels"]) for t in targets)
-        num_boxes = torch.as_tensor([num_boxes], dtype=torch.float, device=next(iter(outputs.values())).device)
+        # Compute the average number of target segments accross all nodes, for normalization purposes
+        num_segments = sum(len(t["classes"]) for t in targets)
+        num_segments = torch.as_tensor([num_segments], dtype=torch.float, device=next(iter(outputs.values())).device)
         if is_dist_avail_and_initialized(): # distribute 分布式模型时使用
-            torch.distributed.all_reduce(num_boxes)
-        num_boxes = torch.clamp(num_boxes / get_world_size(), min=1).item()
+            torch.distributed.all_reduce(num_segments)
+        num_segments = torch.clamp(num_segments / get_world_size(), min=1).item()
 
         # Compute all the requested losses
         losses = {}
         for loss in self.losses:
-            losses.update(self.get_loss(loss, outputs, targets, indices, num_boxes))
+            losses.update(self.get_loss(loss, outputs, targets, indices, num_segments))
 
         # In case of auxiliary losses, we repeat this process with the output of each intermediate layer.
         if 'aux_outputs' in outputs:
@@ -251,10 +250,10 @@ class SetCriterion(nn.Module):
                         # Intermediate masks losses are too costly to compute, we ignore them.
                         continue
                     kwargs = {}
-                    if loss == 'labels':
+                    if loss == 'classes':
                         # Logging is enabled only for the last layer
                         kwargs = {'log': False}
-                    l_dict = self.get_loss(loss, aux_outputs, targets, indices, num_boxes, **kwargs)
+                    l_dict = self.get_loss(loss, aux_outputs, targets, indices, num_segments, **kwargs)
                     l_dict = {k + f'_{i}': v for k, v in l_dict.items()}
                     losses.update(l_dict)
 

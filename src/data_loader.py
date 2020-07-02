@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import Dataset
 from utils.utils import getDatasetDict, getFullData
 import numpy as np
+import json
 
 
 class MyDataSet(Dataset):
@@ -26,8 +27,8 @@ class MyDataSet(Dataset):
         self.video_dict = video_dict
 
         # if dbg： 不需要获得class_index
-        with open()
-        self.classes_index
+        with open(config.index_file,'r') as f:
+            self.classes_index = json.load(f)
 
         video_num = len(list(video_dict.keys()))
 
@@ -68,5 +69,6 @@ class MyDataSet(Dataset):
         iou_label = data_dict['iou_label'][idx].unsqueeze(0)
 
         # if dbg：不需要转换
+        gt_action = self.classes_index[gt_action]
         return gt_action, gt_start, gt_end, feature, iou_label
 
