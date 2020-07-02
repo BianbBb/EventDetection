@@ -97,25 +97,25 @@ class SetCriterion(nn.Module):
         empty_weight[-1] = self.eos_coef
         self.register_buffer('empty_weight', empty_weight)
 
-    def loss_labels(self, outputs, targets, indices, num_boxes, log=True):
+    def loss_classes(self, outputs, targets, indices, num_boxes, log=True):
         """Classification loss (NLL)
         targets dicts must contain the key "labels" containing a tensor of dim [nb_target_boxes]
         """
-        assert 'pred_logits' in outputs
-        src_logits = outputs['pred_logits']
+        assert 'classes' in outputs
+        pred_classes = outputs['classes']
 
         idx = self._get_src_permutation_idx(indices)
-        target_classes_o = torch.cat([t["labels"][J] for t, (_, J) in zip(targets, indices)])
-        target_classes = torch.full(src_logits.shape[:2], self.num_classes,
-                                    dtype=torch.int64, device=src_logits.device)
+        target_classes_o = torch.cat([t["classes"][J] for t, (_, J) in zip(targets, indices)])
+        target_classes = torch.full(pred_classes.shape[:2], self.num_classes,
+                                    dtype=torch.int64, device=pred_classes.device)
         target_classes[idx] = target_classes_o
 
-        loss_ce = F.cross_entropy(src_logits.transpose(1, 2), target_classes, self.empty_weight)
+        loss_ce = F.cross_entropy(pred_classes.transpose(1, 2), target_classes, self.empty_weight)
         losses = {'loss_ce': loss_ce}
 
         if log:
             # TODO this should probably be a separate loss, not hacked in this one here
-            losses['class_error'] = 100 - accuracy(src_logits[idx], target_classes_o)[0]
+            losses['class_error'] = 100 - accuracy(pred_classes[idx], target_classes_o)[0]
         return losses
 
     @torch.no_grad()
@@ -132,25 +132,25 @@ class SetCriterion(nn.Module):
         losses = {'cardinality_error': card_err}
         return losses
 
-    def loss_boxes(self, outputs, targets, indices, num_boxes):
-        """Compute the losses related to the bounding boxes, the L1 regression loss and the GIoU loss
-           targets dicts must contain the key "boxes" containing a tensor of dim [nb_target_boxes, 4]
-           The target boxes are expected in format (center_x, center_y, w, h), normalized by the image size.
+    def loss_segments(self, outputs, targets, indices, num_boxes):
+        """Compute the losses related to the bounding segments, the L1 regression loss and the DIoU loss
+           targets dicts must contain the key "segments" containing a tensor of dim [100, 2]
+           The target segments are expected in format (start, end), normalized by the feature length.
         """
-        assert 'pred_boxes' in outputs
+        assert 'segments' in outputs
         idx = self._get_src_permutation_idx(indices)
-        src_boxes = outputs['pred_boxes'][idx]
-        target_boxes = torch.cat([t['boxes'][i] for t, (_, i) in zip(targets, indices)], dim=0)
+        pred_segments = outputs['segments'][idx]
+        target_segments = torch.cat([t['segments'][i] for t, (_, i) in zip(targets, indices)], dim=0)
 
-        loss_bbox = F.l1_loss(src_boxes, target_boxes, reduction='none')
+        loss_segments = F.l1_loss(pred_segments, pred_segments, reduction='none')
 
         losses = {}
-        losses['loss_bbox'] = loss_bbox.sum() / num_boxes
+        losses['loss_segments'] = loss_segments.sum() / num_boxes
 
-        loss_giou = 1 - torch.diag(box_ops.generalized_box_iou(
+        loss_diou = 1 - torch.diag(box_ops.generalized_box_iou(
             box_ops.box_cxcywh_to_xyxy(src_boxes),
             box_ops.box_cxcywh_to_xyxy(target_boxes)))
-        losses['loss_giou'] = loss_giou.sum() / num_boxes
+        losses['loss_diou'] = loss_giou.sum() / num_boxes
         ## box 坐标转换的一些操作 修改成一维
         return losses
 
@@ -202,10 +202,10 @@ class SetCriterion(nn.Module):
 
     def get_loss(self, loss, outputs, targets, indices, num_boxes, **kwargs):
         loss_map = {
-            'labels': self.loss_labels,
+            'classes': self.loss_classes,
             'cardinality': self.loss_cardinality,
-            'boxes': self.loss_boxes,
-            'masks': self.loss_masks
+            'segments': self.loss_segments,
+            # 'masks': self.loss_masks
         }
         assert loss in loss_map, f'do you really want to compute {loss} loss?'
         return loss_map[loss](outputs, targets, indices, num_boxes, **kwargs)
