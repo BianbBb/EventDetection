@@ -44,7 +44,7 @@ training:
   batch_size: 16
 
 model:
-  model_name: DETR  # DBG or DETR
+  model_name: DBG  # DBG or DETR
 
   transformer:
     enc_layers: 16 # Number of encoding layers in the transformer

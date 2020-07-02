@@ -78,7 +78,7 @@ class Config(object):
         saver_info = config['saver']
         self.exp_dir = saver_info['exp_dir']
         self.results_dir = saver_info['results_dir']
-        self.log_dir = config['log_dir']
+        self.log_dir = saver_info['log_dir']
 
         # Train
         timestamp = time.strftime('%m%d-%H%M', time.localtime())
