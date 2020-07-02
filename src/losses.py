@@ -1,7 +1,8 @@
 import torch.nn.functional as F
 import torch
 import torch.nn as nn
-from utils.misc import accuracy,is_dist_avail_and_initialized,get_world_size
+from utils.misc import accuracy, is_dist_avail_and_initialized, get_world_size
+
 
 def binary_logistic_loss(gt_scores, pred_anchors):
     """

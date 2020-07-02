@@ -1,21 +1,26 @@
 import time
+import os
+import datetime
+
 import torch
 import numpy as np
-import os
+from runx.logx import logx
+
 from .base_trainer import BaseTrainer
-from losses import IoU_loss, SetCriterion
-import datetime
 from utils.misc import AverageMeter
 from models.detr.matcher import build_matcher
 from models.detr.detr import PostProcess
 from utils.read_config import Config
 from losses import SetCriterion
 config = Config()
+logx.initialize(logdir=config.log_dir, coolname=True, tensorboard=True)
 
 
 class DetrTrainer(BaseTrainer):
     def __init__(self, config, net, train_loader, val_loader=None, optimizer=None, writer=None):
         super(DetrTrainer, self).__init__(config, net, optimizer, )
+        # log manager
+
         # dataset
         self.train_loader = train_loader
         self.val_loader = val_loader
@@ -53,12 +58,12 @@ class DetrTrainer(BaseTrainer):
             # if args.distributed:
             #     sampler_train.set_epoch(epoch)
             torch.cuda.empty_cache()
-            print('|  Train  Epoch : {} ------------------------  |'.format(epoch))
+            logx.msg('|  Train  Epoch : {} ------------------------  |'.format(epoch))
             self.train()
-            print('|  Val  Epoch : {} ------------------------  |'.format(epoch))
+            logx.msg('|  Val  Epoch : {} ------------------------  |'.format(epoch))
             self.val()
 
-            print('|Val Loss: {:.4f}'.format(np.mean(self.VAL_LOSS)))
+            logx.msg('|Val Loss: {:.4f}'.format(np.mean(self.VAL_LOSS)))
             if self.BEST_VAL_LOSS is None:
                 self.BEST_VAL_LOSS = np.mean(self.VAL_LOSS)
                 self.save_model()
@@ -71,7 +76,7 @@ class DetrTrainer(BaseTrainer):
 
         total_time = time.time() - start_time
         total_time_str = str(datetime.timedelta(seconds=int(total_time)))
-        print('Training time {}'.format(total_time_str))
+        logx.msg('Training time {}'.format(total_time_str))
 
     def train(self):
         return self.run_epoch(self.train_loader, is_train=True)

@@ -82,7 +82,7 @@ class MLP(nn.Module):
 
 
 def build_detr(config):
-    position_encoding = PositionEmbedding(256, 1024)
+    position_encoding = PositionEmbedding(config.hidden_dim, config.feature_dim)
     transformer = build_transformer(config)
     model = DETR(
         position_encoding,
