@@ -147,12 +147,20 @@ class SetCriterion(nn.Module):
         losses = {}
         losses['loss_segments'] = loss_segments.sum() / num_boxes
 
-        loss_diou = 1 - torch.diag(box_ops.generalized_box_iou(
-            box_ops.box_cxcywh_to_xyxy(src_boxes),
-            box_ops.box_cxcywh_to_xyxy(target_boxes)))
-        losses['loss_diou'] = loss_giou.sum() / num_boxes
+        loss_diou = ((1 - self.distance_iou(pred_segments,target_segments))/2).sum()
+        losses['loss_diou'] = loss_diou.sum() / num_boxes
         ## box 坐标转换的一些操作 修改成一维
         return losses
+
+    def distance_iou(self, seg1, seg2): # 值域为[-1,1]
+        assert (seg1[..., 0] >= seg1[...,1]).all()
+        assert (seg2[..., 0] >= seg2[...,1]).all()
+        inter = torch.max(seg1[...,1], seg2[...,1]) - torch.min(seg1[...,0], seg2[...,0])# 交集
+        union = (torch.min(seg1[...,1], seg2[...,1]) - torch.max(seg1[...,0], seg2[...,0])).clamp(min=0) # 并集
+        center_distance = torch.abs(seg1[...,1]+seg1[...,0]-seg2[...,1]-seg2[...,0])/2 # 中心距离
+        diou = (inter - center_distance)/union
+        return diou
+
 
     '''
     # 图像分割的loss
