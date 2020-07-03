@@ -64,6 +64,6 @@ class MyDataSet(Dataset):
         feature = data_dict['feature'][idx]
         iou_label = []
         iou_label = data_dict['iou_label'][idx].unsqueeze(0)
-
+        gt_action = self.classes_index[gt_action]
         return gt_action, gt_start, gt_end, feature, iou_label
 

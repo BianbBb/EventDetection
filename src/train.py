@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 
 from models.model import network
 from utils.read_config import Config
-from workers.data_loader import MyDataSet
+from workers.detr_dataloader import MyDataSet
 
 # prepare for training
 if not torch.cuda.is_available():

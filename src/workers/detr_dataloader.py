@@ -1,14 +1,97 @@
 import torch
 from torch.utils.data import Dataset
-from utils.utils import getDatasetDict, getFullData
+from utils.utils import get_filter_video_names, load_json,load_feature
 import numpy as np
 import json
 
+def getDatasetDict(config, video_info_file, video_filter=False):
+    json_data = load_json(video_info_file)
+    filter_video_names = get_filter_video_names(video_info_file)  # load filter video name
+
+    database = json_data
+    train_dict = {}
+    val_dict = {}
+    test_dict = {}
+    video_lists = list(json_data.keys())
+    for video_name in video_lists[:]:
+        if video_filter and video_name in filter_video_names:
+            continue
+        video_info = database[video_name]
+        video_new_info = dict()
+        video_new_info["duration_second"] = video_info["duration"]
+        video_subset = video_info['subset']
+        video_new_info["annotations"] = video_info["annotations"]
+        if video_subset == "training":
+            train_dict[video_name] = video_new_info
+        elif video_subset == "validation":
+            val_dict[video_name] = video_new_info
+        elif video_subset == "testing":
+            test_dict[video_name] = video_new_info
+    return train_dict, val_dict, test_dict
+
+
+def getFullData(config, video_dict ,classes_index,last_channel=False, training=True):
+    tscale = config.tscale
+    data_dir = config.feat_dir
+    video_list = list(video_dict.keys())
+
+    batch_anchor_feature = []
+    batch_label_action = []
+    batch_label_start = []
+    batch_label_end = []
+
+    train_video_mean_len = []
+
+    for i in range(len(video_list)): #TODO:tqdm
+        if i % 100 == 0:
+            print("%d / %d videos are loaded" % (i, len(video_list)))
+        video_name = video_list[i]
+        video_info = video_dict[video_name]
+        video_second = video_info["duration_second"]
+        gt_lens = []
+
+        video_labels = video_info["annotations"]
+        for j in range(len(video_labels)):
+            tmp_info = video_labels[j]
+            tmp_label = tmp_info["label"]
+            tmp_start = tmp_info["segment"][0]
+            tmp_end = tmp_info["segment"][1]
+            tmp_start = max(min(1, tmp_start / video_second), 0)
+            tmp_end = max(min(1, tmp_end / video_second), 0)
+            gt_lens.append(tmp_end - tmp_start)
+
+        # calculate gt average length
+        mean_len = 2
+        if len(gt_lens):
+            mean_len = np.mean(gt_lens)
+        if training:
+            train_video_mean_len.append(mean_len)
+
+        # load feature
+        video_feat = load_feature(config, data_dir, video_name)
+
+        if not last_channel:
+            video_feat = np.transpose(video_feat, [1, 0])
+        batch_anchor_feature.append(video_feat)
+
+        batch_label_action.append(classes_index[tmp_label])
+        batch_label_start.append(tmp_start)
+        batch_label_end.append(tmp_end)
+
+
+    dataDict = {
+        "gt_action": batch_label_action,
+        "gt_start": batch_label_start,
+        "gt_end": batch_label_end,
+        "feature": batch_anchor_feature,
+    }
+    if training:
+        return dataDict, train_video_mean_len
+    else:
+        return dataDict
 
 class MyDataSet(Dataset):
-
     def __init__(self, config, mode='training'):
-
         video_info_file = config.video_info_file
         video_filter = config.video_filter
         data_aug = config.data_aug
@@ -26,7 +109,6 @@ class MyDataSet(Dataset):
         self.mode = mode
         self.video_dict = video_dict
 
-        # if dbg： 不需要获得class_index
         with open(config.index_file,'r') as f:
             self.classes_index = json.load(f)
 
@@ -35,10 +117,10 @@ class MyDataSet(Dataset):
         video_list = np.arange(video_num)
 
         # load raw data
-        if training:
-            data_dict, train_video_mean_len = getFullData(config, video_dict, last_channel=False, training=True)
-        else:
-            data_dict = getFullData(config, video_dict, last_channel=False, training=False)
+        if training: ##############
+            data_dict, train_video_mean_len = getFullData(config, video_dict, self.classes_index,last_channel=False, training=True)
+        else:##############
+            data_dict = getFullData(config, video_dict, self.classes_index, last_channel=False, training=False)
 
         # transform data to torch tensor
         for key in list(data_dict.keys()):
@@ -66,11 +148,7 @@ class MyDataSet(Dataset):
         gt_start = data_dict['gt_start'][idx].unsqueeze(0)
         gt_end = data_dict['gt_end'][idx].unsqueeze(0)
         feature = data_dict['feature'][idx]
-        iou_label = []
-        iou_label = data_dict['iou_label'][idx].unsqueeze(0)
-
-
 
         gt_action = self.classes_index[gt_action]
-        return gt_action, gt_start, gt_end, feature, iou_label
+        return gt_action, gt_start, gt_end, feature
 
