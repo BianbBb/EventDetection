@@ -66,7 +66,8 @@ class MyDataSet(Dataset):
         gt_start = data_dict['gt_start'][idx].unsqueeze(0)
         gt_end = data_dict['gt_end'][idx].unsqueeze(0)
         feature = data_dict['feature'][idx]
-        iou_label = data_dict['iou_label'][idx].unsqueeze(0)
+        iou_label = []
+        # iou_label = data_dict['iou_label'][idx].unsqueeze(0)
 
         # if dbg：不需要转换
         gt_action = self.classes_index[gt_action]

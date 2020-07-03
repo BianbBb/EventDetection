@@ -45,10 +45,10 @@ training:
   resume: True
   learning_rate: 3e-4
   epoch_num: 10
-  batch_size: 16
+  batch_size: 2
 
 model:
-  model_name: DBG  # DBG or DETR
+  model_name: DETR  # DBG or DETR
 
   transformer:
     enc_layers: 16 # Number of encoding layers in the transformer

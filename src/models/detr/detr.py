@@ -29,7 +29,7 @@ class DETR(nn.Module):
         hs = self.transformer(input_tensor, None, self.query_embed.weight, pos_embed)[0]
         outputs_class = self.class_embed(hs)
         outputs_coord = self.proposal_embed(hs).sigmoid()
-        out = {'pred_logits': outputs_class[-1], 'pred_boxes': outputs_coord[-1]}
+        out = {'classes': outputs_class[-1], 'segments': outputs_coord[-1]}
         if self.aux_loss:
             out['aux_outputs'] = self._set_aux_loss(outputs_class, outputs_coord)
         return out
@@ -39,29 +39,29 @@ class DETR(nn.Module):
         # this is a workaround to make torchscript happy, as torchscript
         # doesn't support dictionary with non-homogeneous values, such
         # as a dict having both a Tensor and a list.
-        return [{'pred_logits': a, 'pred_boxes': b}
+        return [{'classes': a, 'segments': b}
                 for a, b in zip(outputs_class[:-1], outputs_coord[:-1])]
 
 
 class PostProcess(nn.Module):
     @torch.no_grad()
     def forward(self, outputs, target_sizes):
-        out_logits, out_bbox = outputs['pred_logits'], outputs['pred_boxes']
+        out_classes, out_segments = outputs['classes'], outputs['segments']
 
-        assert len(out_logits) == len(target_sizes)
+        assert len(out_classes) == len(target_sizes)
         assert target_sizes.shape[1] == 2
 
-        prob = F.softmax(out_logits, -1)
-        scores, labels = prob[..., :-1].max(-1)
+        prob = F.softmax(out_classes, -1)
+        scores, classes = prob[..., :-1].max(-1)
 
         # convert to [x0, y0, x1, y1] format
-        boxes = out_bbox
+        segments = out_segments
         # and from relative [0, 1] to absolute [0, height] coordinates
         img_h, img_w = target_sizes.unbind(1)
         scale_fct = torch.stack([img_w, img_h, img_w, img_h], dim=1)
-        boxes = boxes * scale_fct[:, None, :]
+        segments = segments * scale_fct[:, None, :]
 
-        results = [{'scores': s, 'labels': l, 'boxes': b} for s, l, b in zip(scores, labels, boxes)]
+        results = [{'scores': s, 'classes': l, 'segments': b} for s, l, b in zip(scores, classes, segments )]
 
         return results
 
