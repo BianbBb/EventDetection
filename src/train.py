@@ -22,7 +22,6 @@ val_dl = DataLoader(MyDataSet(config, mode='validation'), batch_size=config.batc
 # model
 model = network(config)
 trainer = DetrTrainer(config, model, train_dl, val_dl)
-
 trainer.run()
 
 

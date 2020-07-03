@@ -1,4 +1,4 @@
-source activate env
+conda activate env
 python train.py --pretrained_model your_model_path
 python test.py
 python post_processing.py

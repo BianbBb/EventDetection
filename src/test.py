@@ -5,7 +5,7 @@ import tqdm
 import torch
 import torch.nn as nn
 
-from models.model import DBG, DBG_reduce_dim
+from models.model import network
 from utils.utils import gen_mask, getBatchListTest, getProposalDataTest, save_proposals_result, getDatasetDict
 from utils.read_config import Config
 
