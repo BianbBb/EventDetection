@@ -149,6 +149,5 @@ class MyDataSet(Dataset):
         gt_end = data_dict['gt_end'][idx].unsqueeze(0)
         feature = data_dict['feature'][idx]
 
-        gt_action = self.classes_index[gt_action]
         return gt_action, gt_start, gt_end, feature
 
