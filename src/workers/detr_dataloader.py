@@ -3,6 +3,10 @@ from torch.utils.data import Dataset
 from utils.utils import get_filter_video_names, load_json,load_feature
 import numpy as np
 import json
+import sys
+sys.path.append("../")
+from utils.proposal_ops import xy2cl
+
 
 def getDatasetDict(config, video_info_file, video_filter=False):
     json_data = load_json(video_info_file)
@@ -148,6 +152,8 @@ class MyDataSet(Dataset):
         gt_start = data_dict['gt_start'][idx].unsqueeze(0)
         gt_end = data_dict['gt_end'][idx].unsqueeze(0)
         feature = data_dict['feature'][idx]
+        proposal = xy2cl(torch.Tensor([gt_start, gt_end]))
+        print(proposal.size())
 
-        return gt_action, gt_start, gt_end, feature
+        return gt_action, proposal, feature
 
