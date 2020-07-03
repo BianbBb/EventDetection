@@ -13,6 +13,7 @@ results/
 *.mp4
 *.npy
 *.csv
+*.pth
 try*
 anet_anno_action.json
 /refer/bsn/Evaluation/
