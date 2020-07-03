@@ -48,6 +48,14 @@ class PositionEmbedding(nn.Module):
 
 
 if __name__ == '__main__':
+    import cv2
+    import numpy as np
     emd = PositionEmbedding(100, 1024)
     x = torch.zeros((32, 100, 1024))
     print(emd(x)[0], emd(x)[1])
+    zzz = emd(x)[0].detach().numpy()
+    zz = np.uint8((zzz-np.min(zzz))*255/(np.max(zzz)-np.min(zzz)))
+    print(np.min(zz),np.max(zz))
+    cv2.imshow('zz',zz)
+    cv2.waitKey()
+    print(emd(x)[1].size())

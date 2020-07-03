@@ -61,9 +61,9 @@ model:
     pre_norm: True
 
   matcher:
-    set_cost_class: 1 # Class coefficient in the matching cost
-    set_cost_bbox: 5 # L1 box coefficient in the matching cost
-    set_cost_giou: 2 # giou box coefficient in the matching cost
+    set_cost_classes: 1 # Class coefficient in the matching cost
+    set_cost_segments: 5 # L1 box coefficient in the matching cost
+    set_cost_diou: 2 # giou box coefficient in the matching cost
 
 
 testing:

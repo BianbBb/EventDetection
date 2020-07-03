@@ -8,7 +8,7 @@ from torch import nn
 
 import sys
 sys.path.append("../../")
-from utils.proposal_ops import proposal_iou
+from utils.proposal_ops import distance_iou
 
 
 class HungarianMatcher(nn.Module):
@@ -19,19 +19,19 @@ class HungarianMatcher(nn.Module):
     while the others are un-matched (and thus treated as non-objects).
     """
 
-    def __init__(self, cost_class: float = 1, cost_bbox: float = 1, cost_giou: float = 1):
+    def __init__(self, cost_classes: float = 1, cost_segments: float = 1, cost_diou: float = 1):
         """Creates the matcher
 
         Params:
-            cost_class: This is the relative weight of the classification error in the matching cost
-            cost_bbox: This is the relative weight of the L1 error of the bounding box coordinates in the matching cost
-            cost_giou: This is the relative weight of the giou loss of the bounding box in the matching cost
+            cost_classes: This is the relative weight of the classification error in the matching cost
+            cost_segments: This is the relative weight of the L1 error of the bounding box coordinates in the matching cost
+            cost_diou: This is the relative weight of the giou loss of the bounding box in the matching cost
         """
         super().__init__()
-        self.cost_class = cost_class
-        self.cost_bbox = cost_bbox
-        self.cost_giou = cost_giou
-        assert cost_class != 0 or cost_bbox != 0 or cost_giou != 0, "all costs cant be 0"
+        self.cost_classes = cost_classes
+        self.cost_segments = cost_segments
+        self.cost_diou = cost_diou
+        assert cost_classes != 0 or cost_segments != 0 or cost_diou != 0, "all costs cant be 0"
 
     @torch.no_grad()
     def forward(self, outputs, targets):
@@ -54,35 +54,35 @@ class HungarianMatcher(nn.Module):
             For each batch element, it holds:
                 len(index_i) = len(index_j) = min(num_queries, num_target_boxes)
         """
-        bs, num_queries = outputs["pred_logits"].shape[:2]
+        bs, num_queries = outputs["classes"].shape[:2]
 
         # We flatten to compute the cost matrices in a batch
-        out_prob = outputs["pred_logits"].flatten(0, 1).softmax(-1)  # [batch_size * num_queries, num_classes]
-        out_bbox = outputs["pred_boxes"].flatten(0, 1)  # [batch_size * num_queries, 4]
+        out_classes = outputs["classes"].flatten(0, 1).softmax(-1)  # [batch_size * num_queries, num_classes]
+        out_segments = outputs["segments"].flatten(0, 1)  # [batch_size * num_queries, 4]
 
         # Also concat the target labels and boxes
-        tgt_ids = torch.cat([v["labels"] for v in targets])
-        tgt_bbox = torch.cat([v["boxes"] for v in targets])
+        tgt_classes = torch.cat([v["classes"] for v in targets])
+        tgt_segments = torch.cat([v["segments"] for v in targets])
 
         # Compute the classification cost. Contrary to the loss, we don't use the NLL,
         # but approximate it in 1 - proba[target class].
         # The 1 is a constant that doesn't change the matching, it can be ommitted.
-        cost_class = -out_prob[:, tgt_ids]
+        cost_classes = -out_classes[:, tgt_classes]
 
         # Compute the L1 cost between boxes
-        cost_bbox = torch.cdist(out_bbox, tgt_bbox, p=1)
+        cost_segments = torch.cdist(out_segments, tgt_segments, p=1)
 
-        # Compute the giou cost betwen boxes
-        cost_giou = -proposal_iou(out_bbox, tgt_bbox)
+        # Compute the diou cost betwen segments
+        cost_diou = -distance_iou(out_segments, tgt_segments)
 
         # Final cost matrix
-        C = self.cost_bbox * cost_bbox + self.cost_class * cost_class + self.cost_giou * cost_giou
+        C = self.cost_segments * cost_segments + self.cost_classes * cost_classes + self.cost_diou * cost_diou
         C = C.view(bs, num_queries, -1).cpu()
 
-        sizes = [len(v["boxes"]) for v in targets]
+        sizes = [len(v["segments"]) for v in targets]
         indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(sizes, -1))]
         return [(torch.as_tensor(i, dtype=torch.int64), torch.as_tensor(j, dtype=torch.int64)) for i, j in indices]
 
 
 def build_matcher(config):
-    return HungarianMatcher(cost_class=config.set_cost_class, cost_bbox=config.set_cost_bbox, cost_giou=config.set_cost_giou)
+    return HungarianMatcher(cost_classes=config.set_cost_classes, cost_segments=config.set_cost_segments, cost_diou=config.set_cost_diou)
