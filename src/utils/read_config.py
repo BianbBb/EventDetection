@@ -34,6 +34,7 @@ class Config(object):
         self.feat_dir = dataset_info['feat_dir']
         self.video_info_file = dataset_info['video_info_file']
         self.test_info_file = dataset_info['test_info_file']
+        self.index_file = dataset_info['index_file']
         self.test_dir = dataset_info['test_dir']
         self.video_filter = dataset_info['video_filter']
         self.tscale = dataset_info['tscale']

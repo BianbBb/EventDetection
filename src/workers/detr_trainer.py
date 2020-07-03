@@ -29,12 +29,11 @@ class DetrTrainer(BaseTrainer):
         self.logx = logx
         self.logx.initialize(logdir=config.log_dir, coolname=True, tensorboard=True)
         self.epoch = 0
+        self.loss_map = ['classes', 'cardinality', 'segments', ]
 
-        self.loss_map = ['labels', 'boxes', 'cardinality']
-        self.criterion = self.init_criterion()
 
     def init_criterion(self):
-        weight_dict = {'loss_ce': 1, 'loss_bbox': 5, 'loss_giou': 2}
+        weight_dict = {'loss_ce': 1, 'loss_segments': 5, 'loss_diou': 2}
         # 根据config进行设置
         # TODO this is a hack
         if self.aux_loss:
@@ -91,7 +90,7 @@ class DetrTrainer(BaseTrainer):
             # iou_label = iou_label.to(device=self.device, non_blocking=True)
 
             output = self.net(feature)
-            target = {"boxes":[gt_start,gt_end], "labels":gt_action}
+            target = {"segments":[gt_start,gt_end], "classes":gt_action}
             loss_dict = self.criterion(output,target)
             weight_dict = self.criterion.weight_dict
             losses = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
