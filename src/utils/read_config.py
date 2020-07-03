@@ -65,9 +65,9 @@ class Config(object):
         self.pre_norm = bool(transformer_info['pre_norm'])
         # matcher configure
         matcher_info = model_info['matcher']
-        self.set_cost_class = float(matcher_info['set_cost_class'])
-        self.set_cost_bbox = float(matcher_info['set_cost_bbox'])
-        self.set_cost_giou = float(matcher_info['set_cost_giou'])
+        self.set_cost_classes = float(matcher_info['set_cost_classes'])
+        self.set_cost_segments = float(matcher_info['set_cost_segments'])
+        self.set_cost_diou = float(matcher_info['set_cost_diou'])
 
         """ Testing Setting """
         testing_info = config['testing']

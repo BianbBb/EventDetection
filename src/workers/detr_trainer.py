@@ -7,9 +7,7 @@ from .base_trainer import BaseTrainer
 from utils.misc import AverageMeter
 from models.detr.matcher import build_matcher
 from models.detr.detr import PostProcess
-from utils.read_config import Config
 from losses import SetCriterion
-config = Config()
 
 
 class DetrTrainer(BaseTrainer):
