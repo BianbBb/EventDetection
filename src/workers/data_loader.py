@@ -70,6 +70,10 @@ class MyDataSet(Dataset):
         # iou_label = data_dict['iou_label'][idx].unsqueeze(0)
 
         # if dbg：不需要转换
+        print('gt_start')
+        print(gt_start)
+        print('-------')
+
         gt_action = self.classes_index[gt_action]
         return gt_action, gt_start, gt_end, feature, iou_label
 
