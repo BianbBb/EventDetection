@@ -37,18 +37,18 @@ dataset:
 
 saver:
   exp_dir: ../exp
-  results_dir: ../results/ # 结果文件的位置
+  results_dir: ../results/
   log_dir: ../logs
 
 training:
   gpu_id: 0
-  resume: True
+  resume: False  # if load pre-trained model
   learning_rate: 3e-4
   epoch_num: 10
   batch_size: 16
 
 model:
-  model_name: DBG  # DBG or DETR
+  model_name: DETR  # DBG or DETR
 
   transformer:
     enc_layers: 16 # Number of encoding layers in the transformer
