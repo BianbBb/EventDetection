@@ -41,7 +41,7 @@ class DetrTrainer(BaseTrainer):
             weight_dict.update(aux_weight_dict)
         matcher = build_matcher(self.config)
         criterion = SetCriterion(self.config.num_classes, matcher=matcher, weight_dict=weight_dict,
-                                 eos_coef=self.config.eos_coef, losses=self.loss_map)
+                                 eos_coef=0.1, losses=self.loss_map)
         criterion.to(self.device)
         return criterion
 
