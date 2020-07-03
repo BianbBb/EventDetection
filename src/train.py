@@ -32,7 +32,7 @@ if __name__ == '__main__':
         print(gt_action)
         print(gt_start)
         print(gt_end)
-        print(feature)
+        #print(feature)
         print(feature.size())
 
 
