@@ -7,9 +7,7 @@ from .base_trainer import BaseTrainer
 from utils.misc import AverageMeter
 from models.detr.matcher import build_matcher
 from models.detr.detr import PostProcess
-from utils.read_config import Config
 from losses import SetCriterion
-config = Config()
 
 
 class DetrTrainer(BaseTrainer):
@@ -65,11 +63,11 @@ class DetrTrainer(BaseTrainer):
                     self.BEST_VAL_LOSS = np.mean(self.VAL_LOSS)
 
     def train(self):
-        self.run_epoch(self.train_loader, is_train=True)
+        self.run_epoch(self.train_loader, training=True)
 
     @torch.no_grad()
     def val(self):
-        self.run_epoch(self.val_loader, is_train=False)
+        self.run_epoch(self.val_loader, training=False)
 
     def run_epoch(self, data_loader, training=True):
         if training:
