@@ -18,7 +18,7 @@ class DetrTrainer(BaseTrainer):
         self.val_loader = val_loader
         # loss
         self.aux_loss = config.aux_loss
-        self.criterion = self.init_criterion()
+
         self.postprocessors = {'bbox': PostProcess()}
 
         self.BEST_VAL_LOSS = None  # 在验证集上的最好结果
@@ -28,7 +28,7 @@ class DetrTrainer(BaseTrainer):
         self.logx.initialize(logdir=config.log_dir, coolname=True, tensorboard=True)
         self.epoch = 0
         self.loss_map = ['classes', 'cardinality', 'segments', ]
-
+        self.criterion = self.init_criterion()
 
     def init_criterion(self):
         weight_dict = {'loss_ce': 1, 'loss_segments': 5, 'loss_diou': 2}
