@@ -148,12 +148,10 @@ class MyDataSet(Dataset):
             idx = idx.tolist()
         idx = self.video_list[idx]
         data_dict = self.data_dict
-        gt_action = data_dict['gt_action'][idx].unsqueeze(0)
+        gt_action = data_dict['gt_action'][idx].unsqueeze(0).long()
         gt_start = data_dict['gt_start'][idx].unsqueeze(0)
         gt_end = data_dict['gt_end'][idx].unsqueeze(0)
         feature = data_dict['feature'][idx]
         proposal = xy2cl(torch.Tensor([gt_start, gt_end]))
-        print(proposal.size())
-
         return gt_action, proposal, feature
 
