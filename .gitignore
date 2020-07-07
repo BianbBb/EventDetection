@@ -4,19 +4,16 @@ __pycache__
 dataset/
 runs/
 logs/
-pretrained_model/
-exp/
 results/
-logs/
 
 # file
 *.rar
 *.zip
 *.7z
 *.mp4
-*.pth
 *.npy
 *.csv
+*.pth
 try*
 anet_anno_action.json
 /refer/bsn/Evaluation/

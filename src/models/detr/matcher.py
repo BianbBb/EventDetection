@@ -8,7 +8,7 @@ from torch import nn
 
 import sys
 sys.path.append("../../")
-from utils.proposal_ops import distance_iou
+from utils.proposal_ops import distance_iou, cl2xy
 
 
 class HungarianMatcher(nn.Module):
@@ -43,7 +43,7 @@ class HungarianMatcher(nn.Module):
                  "pred_boxes": Tensor of dim [batch_size, num_queries, 4] with the predicted box coordinates
 
             targets: This is a list of targets (len(targets) = batch_size), where each target is a dict containing:
-                 "labels": Tensor of dim [num_target_boxes] (where num_target_boxes is the number of ground-truth
+                 "labels": Tensor of dim [num_target_boxes, 1] (where num_target_boxes is the number of ground-truth
                            objects in the target) containing the class labels
                  "boxes": Tensor of dim [num_target_boxes, 4] containing the target box coordinates
 
@@ -61,8 +61,8 @@ class HungarianMatcher(nn.Module):
         out_segments = outputs["segments"].flatten(0, 1)  # [batch_size * num_queries, 4]
 
         # Also concat the target labels and boxes
-        tgt_classes = torch.cat([v["classes"] for v in targets])
-        tgt_segments = torch.cat([v["segments"] for v in targets])
+        tgt_classes = targets["classes"].view(-1)
+        tgt_segments = targets["segments"]
 
         # Compute the classification cost. Contrary to the loss, we don't use the NLL,
         # but approximate it in 1 - proba[target class].
@@ -71,9 +71,8 @@ class HungarianMatcher(nn.Module):
 
         # Compute the L1 cost between boxes
         cost_segments = torch.cdist(out_segments, tgt_segments, p=1)
-
         # Compute the diou cost betwen segments
-        cost_diou = -distance_iou(out_segments, tgt_segments)
+        cost_diou = -distance_iou(cl2xy(out_segments), cl2xy(tgt_segments))
 
         # Final cost matrix
         C = self.cost_segments * cost_segments + self.cost_classes * cost_classes + self.cost_diou * cost_diou

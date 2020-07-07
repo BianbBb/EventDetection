@@ -1,4 +1,3 @@
-import time
 import torch
 import numpy as np
 from runx.logx import logx
@@ -18,7 +17,7 @@ class DetrTrainer(BaseTrainer):
         self.val_loader = val_loader
         # loss
         self.aux_loss = config.aux_loss
-        self.criterion = self.init_criterion()
+
         self.postprocessors = {'bbox': PostProcess()}
 
         self.BEST_VAL_LOSS = None  # 在验证集上的最好结果
@@ -28,7 +27,7 @@ class DetrTrainer(BaseTrainer):
         self.logx.initialize(logdir=config.log_dir, coolname=True, tensorboard=True)
         self.epoch = 0
         self.loss_map = ['classes', 'cardinality', 'segments', ]
-
+        self.criterion = self.init_criterion()
 
     def init_criterion(self):
         weight_dict = {'loss_ce': 1, 'loss_segments': 5, 'loss_diou': 2}
@@ -41,7 +40,7 @@ class DetrTrainer(BaseTrainer):
             weight_dict.update(aux_weight_dict)
         matcher = build_matcher(self.config)
         criterion = SetCriterion(self.config.num_classes, matcher=matcher, weight_dict=weight_dict,
-                                 eos_coef=self.config.eos_coef, losses=self.loss_map)
+                                 eos_coef=0.1, losses=self.loss_map)
         criterion.to(self.device)
         return criterion
 
@@ -79,17 +78,15 @@ class DetrTrainer(BaseTrainer):
         results = {}
         # avg_loss_stats = {L: AverageMeter() for L in self.loss_stats}
         cost_val = 0
-        for n_iter, (gt_action, gt_start, gt_end, feature, iou_label) in enumerate(data_loader):
+        for n_iter, (gt_action, gt_proposal, feature) in enumerate(data_loader):
             torch.cuda.empty_cache()
-            gt_action = gt_action.to(device=self.device, non_blocking=True)
-            gt_start = gt_start.to(device=self.device, non_blocking=True)
-            gt_end = gt_end.to(device=self.device, non_blocking=True)
-            feature = feature.to(device=self.device, non_blocking=True)
-            # iou_label = iou_label.to(device=self.device, non_blocking=True)
+            gt_action = gt_action.to(self.device)
+            gt_proposal = gt_proposal.to(self.device)
+            feature = feature.to(self.device)
 
             output = self.net(feature)
-            target = {"segments":[gt_start,gt_end], "classes":gt_action}
-            loss_dict = self.criterion(output,target)
+            target = {"segments": gt_proposal, "classes": gt_action}
+            loss_dict = self.criterion(output, target)
             weight_dict = self.criterion.weight_dict
             losses = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
             cost_val += losses
