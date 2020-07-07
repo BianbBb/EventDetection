@@ -61,8 +61,8 @@ class HungarianMatcher(nn.Module):
         out_segments = outputs["segments"].flatten(0, 1)  # [batch_size * num_queries, 4]
 
         # Also concat the target labels and boxes
-        tgt_classes = targets["classes"].view(-1)
-        tgt_segments = targets["segments"]
+        tgt_classes = torch.cat([v["classes"] for v in targets])
+        tgt_segments = torch.cat([v["segments"] for v in targets])
 
         # Compute the classification cost. Contrary to the loss, we don't use the NLL,
         # but approximate it in 1 - proba[target class].

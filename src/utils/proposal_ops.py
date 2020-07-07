@@ -27,9 +27,17 @@ def distance_iou(seg1, seg2):  # 值域为[-1,1]
     # TODO:删除 losses 中定义的func
     assert (seg1[..., 0] <= seg1[..., 1]).all()
     assert (seg2[..., 0] <= seg2[..., 1]).all()
-    inter = torch.max(seg1[..., 1], seg2[..., 1]) - torch.min(seg1[..., 0], seg2[..., 0])  # 交集
-    union = (torch.min(seg1[..., 1], seg2[..., 1]) - torch.max(seg1[..., 0], seg2[..., 0])).clamp(min=0)  # 并集
-    center_distance = torch.abs(seg1[..., 1] + seg1[..., 0] - seg2[..., 1] - seg2[..., 0]) / 2  # 中心距离
+
+    left = torch.max(seg1[:, None, 0], seg2[:, 0])  # [N,M,1]  # 交集的左端点：两段左端点的较大值
+    right = torch.min(seg1[:, None, 1], seg2[:, 1])  # [N,M,1]  #交集的右端点：两段右端点的较小值
+
+    inter = (right - left).clamp(min=0)  # [N,M,1] # 交集的长度
+
+    union_l = torch.min(seg1[:, None, 0], seg2[:, 0]) # union的左端点
+    union_r = torch.max(seg1[:, None, 1], seg2[:, 1]) # union的右端点
+    union = (union_r - union_l).clamp(min=0)  # 并集
+
+    center_distance = torch.abs(seg1[:, None, 0] + seg1[:, None, 1] - seg2[:, 0] - seg2[:, 1]) / 2 # 中心距离
     diou = (inter - center_distance) / union
     return diou
 
@@ -40,6 +48,7 @@ def cl2xy(x):
     l = x[..., 1]
     y[..., 0] = c-l
     y[..., 1] = c+l
+    # TODO: 超过边界（0，视频最大特征长度），进行截断
     assert y.size() == x.size()
     return y
 

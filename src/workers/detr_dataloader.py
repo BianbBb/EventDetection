@@ -152,6 +152,7 @@ class MyDataSet(Dataset):
         gt_start = data_dict['gt_start'][idx].unsqueeze(0)
         gt_end = data_dict['gt_end'][idx].unsqueeze(0)
         feature = data_dict['feature'][idx]
-        proposal = xy2cl(torch.Tensor([gt_start, gt_end]))
-        return gt_action, proposal, feature
+        gt_segment = xy2cl(torch.Tensor([gt_start, gt_end]))
+        target = {'classes':gt_action, 'segments':gt_segment}
+        return feature,target
 
