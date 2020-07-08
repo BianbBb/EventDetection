@@ -78,15 +78,15 @@ class DetrTrainer(BaseTrainer):
         results = {}
         # avg_loss_stats = {L: AverageMeter() for L in self.loss_stats}
         cost_val = 0
-        for n_iter, (gt_action, gt_proposal, feature) in enumerate(data_loader):
+        for n_iter, (samples, targets) in enumerate(data_loader):
             torch.cuda.empty_cache()
-            gt_action = gt_action.to(self.device)
-            gt_proposal = gt_proposal.to(self.device)
-            feature = feature.to(self.device)
+            samples = samples.to(self.device)
+            targets = [{k: torch.FloatTensor(v).to(self.device) for k, v in t.items()} for t in targets]
+            outputs = self.net(samples)
 
-            output = self.net(feature)
-            target = {"segments": gt_proposal, "classes": gt_action}
-            loss_dict = self.criterion(output, target)
+            print('-------------------- get out ---------------------')
+
+            loss_dict = self.criterion(outputs, targets)
             weight_dict = self.criterion.weight_dict
             losses = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
             cost_val += losses
