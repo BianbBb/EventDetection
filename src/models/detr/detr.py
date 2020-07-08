@@ -91,3 +91,4 @@ def build_detr(config):
         num_queries=config.num_queries,
         aux_loss=False,
     )
+    return model

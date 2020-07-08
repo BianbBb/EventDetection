@@ -108,7 +108,7 @@ class SetCriterion(nn.Module):
         target_classes_o = torch.cat([t["classes"][J] for t, (_, J) in zip(targets, indices)])
         target_classes = torch.full(pred_classes.shape[:2], self.num_classes,
                                     dtype=torch.int64, device=pred_classes.device)
-        target_classes[idx] = target_classes_o
+        target_classes[idx[0]] = target_classes_o
 
         loss_ce = F.cross_entropy(pred_classes.transpose(1, 2), target_classes, self.empty_weight)
         losses = {'loss_ce': loss_ce}

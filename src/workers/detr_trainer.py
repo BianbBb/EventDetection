@@ -80,16 +80,11 @@ class DetrTrainer(BaseTrainer):
         cost_val = 0
         for n_iter, (samples, targets) in enumerate(data_loader):
             torch.cuda.empty_cache()
-
+            samples = torch.cat([i.unsqueeze(0) for i in samples], dim=0)
+            targets = list(targets)
             samples = samples.to(self.device)
             outputs = self.net(samples)
-
-            print('-------------------- get out ---------------------')
-
-            print(type(targets))
-            print(len(targets))
-            print(type(targets[0]))
-            targets = [{k: v.to(self.device) for k, v in t.items()} for t in targets]
+            targets = [{k: torch.FloatTensor(v).to(self.device) for k, v in t.items()} for t in targets]
 
             loss_dict = self.criterion(outputs, targets)
             weight_dict = self.criterion.weight_dict

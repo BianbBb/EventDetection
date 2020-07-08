@@ -162,13 +162,9 @@ class MyDataSet(Dataset):
         tmp_segment = []
         for i, j in zip(gt_start, gt_end):
             tmp_segment.append( [i, j])
-        #
-        print('-----dataloader-----')
-        # print(tmp_segment)
+
         gt_segment = xy2cl(torch.Tensor(tmp_segment)).numpy().tolist()
 
-
         target = {'classes':gt_action, 'segments':gt_segment}
-        print(target)
         return feature,target
 
