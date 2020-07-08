@@ -66,7 +66,7 @@ def getFullData(config, video_dict ,classes_index,last_channel=False, training=T
             tmp_start = max(min(1, tmp_start / video_second), 0)
             tmp_end = max(min(1, tmp_end / video_second), 0)
             gt_lens.append(tmp_end - tmp_start)
-            video_labels.append(tmp_label)
+            video_labels.append(classes_index[tmp_label])
             video_starts.append(tmp_start)
             video_ends.append(tmp_end)
 
@@ -83,7 +83,7 @@ def getFullData(config, video_dict ,classes_index,last_channel=False, training=T
         if not last_channel:
             video_feat = np.transpose(video_feat, [1, 0])
         batch_anchor_feature.append(video_feat)
-        batch_label_action.append(classes_index[video_labels])
+        batch_label_action.append(video_labels)
         batch_label_start.append(video_starts)
         batch_label_end.append(video_ends)
 
@@ -133,15 +133,15 @@ class MyDataSet(Dataset):
             data_dict = getFullData(config, video_dict, self.classes_index, last_channel=False, training=False)
 
         # transform data to torch tensor
-        for key in list(data_dict.keys()):
-            data_dict[key] = torch.Tensor(data_dict[key]).float()
+        # for key in list(data_dict.keys()):
+        #     data_dict[key] = torch.Tensor(data_dict[key]).float()
         self.data_dict = data_dict
 
-        if data_aug and training:
-            # add train video with short proposals
-            add_list = np.where(np.array(train_video_mean_len) < 0.2)
-            add_list = np.reshape(add_list, [-1])
-            video_list = np.concatenate([video_list, add_list[:]], 0)
+        # if data_aug and training:
+        #         #     # add train video with short proposals
+        #         #     add_list = np.where(np.array(train_video_mean_len) < 0.2)
+        #         #     add_list = np.reshape(add_list, [-1])
+        #         #     video_list = np.concatenate([video_list, add_list[:]], 0)
 
         self.video_list = video_list
         np.random.shuffle(self.video_list)
@@ -150,15 +150,26 @@ class MyDataSet(Dataset):
         return len(self.video_list)
 
     def __getitem__(self, idx):
+        print(idx)
         if torch.is_tensor(idx):
             idx = idx.tolist()
         idx = self.video_list[idx]
         data_dict = self.data_dict
-        gt_action = data_dict['gt_action'][idx].unsqueeze(0).long()
-        gt_start = data_dict['gt_start'][idx].unsqueeze(0)
-        gt_end = data_dict['gt_end'][idx].unsqueeze(0)
-        feature = data_dict['feature'][idx]
-        gt_segment = xy2cl(torch.Tensor([gt_start, gt_end]))
+        gt_action = data_dict['gt_action'][idx]
+        gt_start = data_dict['gt_start'][idx]
+        gt_end = data_dict['gt_end'][idx]
+        feature = torch.Tensor(data_dict['feature'][idx])
+
+        tmp_segment = []
+        for i, j in zip(gt_start, gt_end):
+            tmp_segment.append( [i, j])
+        #
+        # print('----------')
+        # print(tmp_segment)
+        gt_segment = xy2cl(torch.Tensor(tmp_segment)).numpy().tolist()
+
+
         target = {'classes':gt_action, 'segments':gt_segment}
+        # print(target)
         return feature,target
 
