@@ -150,7 +150,6 @@ class MyDataSet(Dataset):
         return len(self.video_list)
 
     def __getitem__(self, idx):
-        print(idx)
         if torch.is_tensor(idx):
             idx = idx.tolist()
         idx = self.video_list[idx]

@@ -28,7 +28,7 @@ config = Config()
 # batch_sampler_val = torch.utils.data.BatchSampler(sampler_train, config.batch_size, drop_last=False)
 
 train_dl = DataLoader(MyDataSet(config, mode='training'), batch_size=config.batch_size,shuffle=True, num_workers=0, drop_last=True)
-#val_dl = DataLoader(MyDataSet(config, mode='validation'), batch_size=config.batch_size,shuffle=False, num_workers=0, drop_last=True)
+val_dl = DataLoader(MyDataSet(config, mode='validation'), batch_size=config.batch_size,shuffle=False, num_workers=0, drop_last=True)
 
 
 #
@@ -40,9 +40,8 @@ train_dl = DataLoader(MyDataSet(config, mode='training'), batch_size=config.batc
 
 
 if __name__ == '__main__':
-    for n_iter, (samples, targets) in enumerate(train_dl):
+    for n_iter, (samples, targets) in enumerate(val_dl):
         print('--------------')
-        print(len(targets))
         for k,v in targets.items():
             print(k)
             print(v)
