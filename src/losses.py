@@ -2,7 +2,7 @@ import torch.nn.functional as F
 import torch
 import torch.nn as nn
 from utils.misc import accuracy, is_dist_avail_and_initialized, get_world_size
-
+from utils.proposal_ops import distance_iou,cl2xy
 
 def binary_logistic_loss(gt_scores, pred_anchors):
     """
@@ -113,7 +113,7 @@ class SetCriterion(nn.Module):
         loss_ce = F.cross_entropy(pred_classes.transpose(1, 2), target_classes, self.empty_weight)
         losses = {'loss_ce': loss_ce}
 
-        if log:
+        if log:#????是否需要保留？
             # TODO this should probably be a separate loss, not hacked in this one here
             losses['class_error'] = 100 - accuracy(pred_classes[idx], target_classes_o)[0]
         return losses
@@ -123,7 +123,7 @@ class SetCriterion(nn.Module):
         """ Compute the cardinality error, ie the absolute error in the number of predicted non-empty segments
         This is not really a loss, it is intended for logging purposes only. It doesn't propagate gradients
         """
-        pred_logits = outputs['pred_logits']
+        pred_logits = outputs['classes']
         device = pred_logits.device
         tgt_lengths = torch.as_tensor([len(v["classes"]) for v in targets], device=device)
         # Count the number of predictions that are NOT "no-object" (which is the last class)
@@ -147,18 +147,10 @@ class SetCriterion(nn.Module):
         losses = {}
         losses['loss_segments'] = loss_segments.sum() / num_segments
 
-        loss_diou = ((1 - self.distance_iou(pred_segments,target_segments))/2).sum()
+        loss_diou = 1 - torch.diag(distance_iou(cl2xy(pred_segments),cl2xy(target_segments)))
+        loss_diou = ((1 - distance_iou(pred_segments,target_segments))/2).sum()
         losses['loss_diou'] = loss_diou.sum() / num_segments
         return losses
-
-    def distance_iou(self, seg1, seg2): # 值域为[-1,1]
-        assert (seg1[..., 0] >= seg1[...,1]).all()
-        assert (seg2[..., 0] >= seg2[...,1]).all()
-        inter = torch.max(seg1[...,1], seg2[...,1]) - torch.min(seg1[...,0], seg2[...,0])# 交集
-        union = (torch.min(seg1[...,1], seg2[...,1]) - torch.max(seg1[...,0], seg2[...,0])).clamp(min=0) # 并集
-        center_distance = torch.abs(seg1[...,1]+seg1[...,0]-seg2[...,1]-seg2[...,0])/2 # 中心距离
-        diou = (inter - center_distance)/union
-        return diou
 
     def _get_src_permutation_idx(self, indices):
         # permute predictions following indices

@@ -24,7 +24,6 @@ def proposal_iou(proposal1, proposal2):
 
 
 def distance_iou(seg1, seg2):  # 值域为[-1,1]
-    # TODO:删除 losses 中定义的func
     assert (seg1[..., 0] <= seg1[..., 1]).all()
     assert (seg2[..., 0] <= seg2[..., 1]).all()
 
