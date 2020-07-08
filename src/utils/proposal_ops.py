@@ -51,6 +51,7 @@ def cl2xy(x):
     assert y.size() == x.size()
     return y
 
+
 def xy2cl(x):
     y = torch.zeros_like(x)
     a = x[..., 0]
