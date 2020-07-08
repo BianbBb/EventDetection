@@ -243,9 +243,9 @@ class TransformerDecoderLayer(nn.Module):
         tgt = tgt + self.dropout1(tgt2)
         tgt2 = self.norm2(tgt)
 
-        print('-------')
-        print(tgt2.size())
-        print('-------')
+        # print('-------')
+        # print(tgt2.size())
+        # print('-------')
 
 
 

@@ -83,6 +83,12 @@ class DetrTrainer(BaseTrainer):
 
             samples = samples.to(self.device)
             outputs = self.net(samples)
+
+            print('-------------------- get out ---------------------')
+
+            print(type(targets))
+            print(len(targets))
+            print(type(targets[0]))
             targets = [{k: v.to(self.device) for k, v in t.items()} for t in targets]
 
             loss_dict = self.criterion(outputs, targets)
