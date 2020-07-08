@@ -121,4 +121,3 @@ class DetrTrainer(BaseTrainer):
             'state_dict': self.net.state_dict()
         }
         self.logx.save_model(save_dict, metric=self.VAL_LOSS, epoch=self.epoch, delete_old=True)
-

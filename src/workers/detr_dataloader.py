@@ -166,4 +166,3 @@ class MyDataSet(Dataset):
         gt_segment = xy2cl(torch.Tensor(tmp_segment)).numpy().tolist()
         target = {'classes': gt_action, 'segments': gt_segment}
         return feature, target
-
