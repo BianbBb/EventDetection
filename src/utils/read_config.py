@@ -45,7 +45,7 @@ class Config(object):
         training_info = config['training']
         self.gpu_id = training_info['gpu_id']
         self.resume = bool(training_info['resume'])
-        self.learning_rate = training_info['learning_rate']
+        self.learning_rate = float(training_info['learning_rate'])
         self.epoch_num = training_info['epoch_num']
         self.batch_size = training_info['batch_size']
         self.aux_loss = False

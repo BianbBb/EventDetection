@@ -20,8 +20,8 @@ class DetrTrainer(BaseTrainer):
 
         self.postprocessors = {'bbox': PostProcess()}
 
-        self.BEST_VAL_LOSS = None  # 在验证集上的最好结果
-        self.VAL_LOSS = None
+        self.BEST_VAL_LOSS = np.inf  # 在验证集上的最好结果
+        self.VAL_LOSS = np.inf
         # log manager
         self.logx = logx
         self.logx.initialize(logdir=config.log_dir, coolname=True, tensorboard=True)
@@ -53,13 +53,6 @@ class DetrTrainer(BaseTrainer):
             self.train()
             logx.msg('|  Val  Epoch : {} ------------------------  |'.format(epoch))
             self.val()
-
-            logx.msg('|Val Loss: {:.4f}'.format(np.mean(self.VAL_LOSS)))
-            if self.BEST_VAL_LOSS is None:
-                self.BEST_VAL_LOSS = np.mean(self.VAL_LOSS)
-            else:
-                if np.mean(self.VAL_LOSS) <= self.BEST_VAL_LOSS:
-                    self.BEST_VAL_LOSS = np.mean(self.VAL_LOSS)
 
     def train(self):
         self.run_epoch(self.train_loader, training=True)
