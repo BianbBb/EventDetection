@@ -40,7 +40,13 @@ trainer = DetrTrainer(config, model, train_dl, val_dl,optimizer='Adam')
 trainer.run()
 
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
+    from torchsummary import summary
+    # 注释前面
+    model = network(config)
+    summary(model.cuda(),(1024,100),batch_size=2)
+    # 查看model para size 和 合适的batch_size
+
 #     for samples, targets in train_dl:
 #         print('--------------')
 #         print(samples[0].size())

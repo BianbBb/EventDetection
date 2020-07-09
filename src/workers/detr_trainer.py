@@ -1,3 +1,4 @@
+import time
 import torch
 import numpy as np
 from runx.logx import logx
@@ -18,7 +19,7 @@ class DetrTrainer(BaseTrainer):
         # loss
         self.aux_loss = config.aux_loss
 
-        self.postprocessors = {'bbox': PostProcess()}
+        self.postprocessors = {'bbox': PostProcess()} ##############???????????????
 
         self.BEST_VAL_LOSS = np.inf  # 在验证集上的最好结果
         self.VAL_LOSS = np.inf
@@ -49,9 +50,9 @@ class DetrTrainer(BaseTrainer):
         for epoch in range(self.EPOCH):
             self.epoch = epoch
             torch.cuda.empty_cache()
-            logx.msg('|  Train  Epoch : {} ------------------------  |'.format(epoch))
+            logx.msg('|  ---------------- Train  Epoch : {} ----------------  |'.format(epoch))
             self.train()
-            logx.msg('|  Val  Epoch : {} ------------------------  |'.format(epoch))
+            logx.msg('|  ----------------  Val   Epoch : {} ----------------  |'.format(epoch))
             self.val()
 
     def train(self):
@@ -67,10 +68,12 @@ class DetrTrainer(BaseTrainer):
         else:
             self.net.eval()
 
-        step_time = AverageMeter()
+        # step_time = AverageMeter()
         results = {}
         # avg_loss_stats = {L: AverageMeter() for L in self.loss_stats}
-        cost_val = 0
+        epoch_loss = 0 # 一个epoch的总loss
+        epoch_time = time.time()
+        steps_losses = {'total':0,'loss_ce':0,'loss_segments':0,'loss_diou':0} # 几个step的loss
         for n_iter, (samples, targets) in enumerate(data_loader):
             torch.cuda.empty_cache()
             samples = torch.cat([i.unsqueeze(0) for i in samples], dim=0)
@@ -81,33 +84,61 @@ class DetrTrainer(BaseTrainer):
 
             loss_dict = self.criterion(outputs, targets)
             weight_dict = self.criterion.weight_dict
-            losses = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
-            cost_val += losses
+
+            # step_loss = 0
+            # for k in loss_dict.keys():
+            #     if k in weight_dict:
+            #         step_loss += loss_dict[k] * weight_dict[k]
+            step_loss = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
+            epoch_loss += step_loss
+
+            for k in steps_losses.keys():
+                if k == 'total':
+                    steps_losses[k] += step_loss
+                else:
+                    steps_losses[k] += loss_dict[k]
 
             if training:
                 self.optimizer.zero_grad()
-                losses.backward()
+                step_loss.backward()
                 # TODO: max_norm 的作用？
                 # if max_norm > 0:
                 #     torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm)
                 self.optimizer.step()
-        cost_val /= (n_iter + 1)
+
+            # 每隔N_step打印一次
+            N_step = 20
+            if (n_iter+1) % N_step == 0:
+                #TODO: 累积ce、l1、diou loss step的平均时间
+                print(  '| Epoch {:>3d} Step {:>6d} '
+                        '| Total Loss: {:.5f} '
+                        '| CE Loss: {:.5f} '
+                        '| L1 Loss: {:.5f} '
+                        '| DIoU Loss: {:.5f} |'
+                        .format(
+                            self.epoch, n_iter+1,
+                            steps_losses['total']/N_step,
+                            steps_losses['loss_ce']/N_step,
+                            steps_losses['loss_segments']/N_step,
+                            steps_losses['loss_diou']/N_step
+                        ) )
+                for k in steps_losses.keys():
+                        steps_losses.update({k: 0})
+
+        epoch_loss /= (n_iter + 1)
         metrics = {
-            'total_loss': cost_val
+            'total_loss': epoch_loss
         }
         if training:
             self.logx.metric('train', metrics, self.epoch)
-            self.logx.msg(
-                "Epoch-%d Training Loss: "
-                "Total - %.05f"
-                % (self.epoch, cost_val))
+            # self.logx.msg('| Epoch {:>3d}   Total Loss: {:.5f}   Train Time: {:.0f} | '
+            #               .format(self.epoch, epoch_loss,(time.time()- epoch_time)/60))
         else:
             self.logx.metric('val', metrics, self.epoch)
-            self.VAL_LOSS = cost_val
-            self.logx.msg(
-                "Epoch-%d Validation Loss: "
-                "Total - %.05f"
-                % (self.epoch, cost_val))
+            self.VAL_LOSS = epoch_loss
+
+        self.logx.msg('| Epoch {:>3d}   Total Loss: {:.5f}   Train Time: {:.0f} | '
+                          .format(self.epoch, epoch_loss, (time.time() - epoch_time) / 60))
 
         save_dict = {
             'epoch': self.epoch + 1,
