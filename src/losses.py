@@ -104,14 +104,29 @@ class SetCriterion(nn.Module):
         assert 'classes' in outputs
         pred_classes = outputs['classes']
 
-        idx = self._get_src_permutation_idx(indices)
-        target_classes_o = torch.cat([t["classes"][J] for t, (_, J) in zip(targets, indices)])
+        idx = self._get_src_permutation_idx(indices) # batch_idx, src_idx
+
+        #batch_idx = idx[0].tolist()
+        target_classes_o = torch.cat([t["classes"][J] for t, (_, J) in zip(targets, indices)]) #获得indices对应的segment的实际动作类别
+        target_classes_o = target_classes_o.to(dtype=torch.int64)
         target_classes = torch.full(pred_classes.shape[:2], self.num_classes,
                                     dtype=torch.int64, device=pred_classes.device)
-        target_classes[idx[0]] = target_classes_o
+        target_classes[idx] = target_classes_o
 
         loss_ce = F.cross_entropy(pred_classes.transpose(1, 2), target_classes, self.empty_weight)
-        losses = {'loss_ce': loss_ce}
+        # print('---------------')
+        # print('indices')
+        # print(indices)
+        # print('idx')
+        # print(idx)
+        # print('target_classes_o')
+        # print(target_classes_o)
+        # print('target_classes')
+        # print( target_classes)
+        # print(loss_ce/len(target_classes_o))
+        # print('---------------')
+
+        losses = {'loss_ce': loss_ce/len(target_classes_o)}
 
         if log:#????是否需要保留？
             # TODO this should probably be a separate loss, not hacked in this one here
@@ -148,8 +163,8 @@ class SetCriterion(nn.Module):
         losses['loss_segments'] = loss_segments.sum() / num_segments
 
         loss_diou = 1 - torch.diag(distance_iou(cl2xy(pred_segments),cl2xy(target_segments)))
-        loss_diou = ((1 - distance_iou(pred_segments,target_segments))/2).sum()
-        losses['loss_diou'] = loss_diou.sum() / num_segments
+        # loss_diou = ((1 - distance_iou(pred_segments,target_segments))/2).sum()
+        losses['loss_diou'] = loss_diou.sum() / num_segments /2
         return losses
 
     def _get_src_permutation_idx(self, indices):

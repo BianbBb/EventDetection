@@ -34,21 +34,18 @@ train_dl = DataLoader(dataset_train, batch_sampler=batch_sampler_train,collate_f
 val_dl = DataLoader(dataset_val, config.batch_size, sampler=sampler_val,drop_last=False, collate_fn=collate_fn, num_workers=0)
 
 
-# model
+
 model = network(config)
-# #
-trainer = DetrTrainer(config, model, train_dl, val_dl)
+trainer = DetrTrainer(config, model, train_dl, val_dl,optimizer='Adam')
 trainer.run()
 
 
-if __name__ == '__main__':
-    for samples, targets in train_dl:
-        print('--------------')
-        print(samples[0].size())
-        print(len(targets))
-        print(targets[0])
-        print(targets[1])
-        # for k,v in targets.items():
-        #     print(k)
-        #     print(v)
-        # 验证下collate_fn中的batch输出结果
+# if __name__ == '__main__':
+#     for samples, targets in train_dl:
+#         print('--------------')
+#         print(samples[0].size())
+#         print(len(targets))
+#         print(targets[0])
+#         print(targets[1])
+
+
