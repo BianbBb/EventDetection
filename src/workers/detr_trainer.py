@@ -107,7 +107,7 @@ class DetrTrainer(BaseTrainer):
                 self.optimizer.step()
 
             # 每隔N_step打印一次
-            N_step = 20
+            N_step = 50
             if (n_iter+1) % N_step == 0:
                 #TODO: 累积ce、l1、diou loss step的平均时间
                 print(  '| Epoch {:<3d} Step {:<5d} '

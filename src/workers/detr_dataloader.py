@@ -79,11 +79,11 @@ def getFullData(config, video_dict ,classes_index,last_channel=False, training=T
 
         # load feature
         ## feature ###################################################
-        # video_feat = load_feature(config, data_dir, video_name)
+        video_feat = load_feature(config, data_dir, video_name)
 
-        # if not last_channel:
-        #     video_feat = np.transpose(video_feat, [1, 0])
-        # batch_anchor_feature.append(video_feat)
+        if not last_channel:
+            video_feat = np.transpose(video_feat, [1, 0])
+        batch_anchor_feature.append(video_feat)
         ###################################################
 
         batch_label_action.append(video_labels)
@@ -96,7 +96,7 @@ def getFullData(config, video_dict ,classes_index,last_channel=False, training=T
         "gt_action": batch_label_action,
         "gt_start": batch_label_start,
         "gt_end": batch_label_end,
-        #"feature": batch_anchor_feature, ## feature
+        "feature": batch_anchor_feature, ## feature
     }
     if training:
         return dataDict, train_video_mean_len
@@ -160,10 +160,10 @@ class MyDataSet(Dataset):
 
 
         ## feature #######################################################
-        # feature = torch.Tensor(data_dict['feature'][idx])
-        video_name = list(self.video_dict.keys())[idx]
-        video_feat = load_feature(self.config, self.config.feat_dir, video_name)
-        feature = torch.Tensor(np.transpose(video_feat, [1, 0]))
+        feature = torch.Tensor(data_dict['feature'][idx])
+        # video_name = list(self.video_dict.keys())[idx]
+        # video_feat = load_feature(self.config, self.config.feat_dir, video_name)
+        # feature = torch.Tensor(np.transpose(video_feat, [1, 0]))
         #########################################################
 
 

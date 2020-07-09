@@ -113,7 +113,7 @@ class SetCriterion(nn.Module):
                                     dtype=torch.int64, device=pred_classes.device)
         target_classes[idx] = target_classes_o
 
-        loss_ce = F.cross_entropy(pred_classes.transpose(1, 2), target_classes, self.empty_weight)
+        loss_ce = F.cross_entropy(pred_classes.transpose(1, 2), target_classes)
         # print('---------------')
         # print('indices')
         # print(indices)
@@ -128,9 +128,9 @@ class SetCriterion(nn.Module):
 
         losses = {'loss_ce': loss_ce/len(target_classes_o)}
 
-        if log:#????是否需要保留？
-            # TODO this should probably be a separate loss, not hacked in this one here
-            losses['class_error'] = 100 - accuracy(pred_classes[idx], target_classes_o)[0]
+        # if log:#????是否需要保留？
+        #     # TODO this should probably be a separate loss, not hacked in this one here
+        #     losses['class_error'] = 100 - accuracy(pred_classes[idx], target_classes_o)[0]
         return losses
 
     @torch.no_grad()
