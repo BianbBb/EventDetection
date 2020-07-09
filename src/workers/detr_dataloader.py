@@ -78,11 +78,14 @@ def getFullData(config, video_dict ,classes_index,last_channel=False, training=T
             train_video_mean_len.append(mean_len)
 
         # load feature
-        video_feat = load_feature(config, data_dir, video_name)
+        ## feature ###################################################
+        # video_feat = load_feature(config, data_dir, video_name)
 
-        if not last_channel:
-            video_feat = np.transpose(video_feat, [1, 0])
-        batch_anchor_feature.append(video_feat)
+        # if not last_channel:
+        #     video_feat = np.transpose(video_feat, [1, 0])
+        # batch_anchor_feature.append(video_feat)
+        ###################################################
+
         batch_label_action.append(video_labels)
         batch_label_start.append(video_starts)
         batch_label_end.append(video_ends)
@@ -93,7 +96,7 @@ def getFullData(config, video_dict ,classes_index,last_channel=False, training=T
         "gt_action": batch_label_action,
         "gt_start": batch_label_start,
         "gt_end": batch_label_end,
-        "feature": batch_anchor_feature,
+        #"feature": batch_anchor_feature, ## feature
     }
     if training:
         return dataDict, train_video_mean_len
@@ -103,6 +106,7 @@ def getFullData(config, video_dict ,classes_index,last_channel=False, training=T
 
 class MyDataSet(Dataset):
     def __init__(self, config, mode='training'):
+        self.config = config
         video_info_file = config.video_info_file
         video_filter = config.video_filter
         data_aug = config.data_aug
@@ -110,12 +114,12 @@ class MyDataSet(Dataset):
         training = True
         if mode == 'training':
             video_dict = train_dict
-            # video_dict = dict(list(video_dict.items())[:500]) # TODO：comment out this line
+            #video_dict = dict(list(video_dict.items())[:60]) # TODO：comment out this line
 
         else:
             training = False
             video_dict = val_dict
-            # video_dict = dict(list(video_dict.items())[:500])  # TODO：comment out this line
+            #video_dict = dict(list(video_dict.items())[:60])  # TODO：comment out this line
 
         self.mode = mode
         self.video_dict = video_dict
@@ -123,9 +127,7 @@ class MyDataSet(Dataset):
         with open(config.index_file,'r') as f:
             self.classes_index = json.load(f)
 
-        video_num = len(list(video_dict.keys()))
-
-        video_list = np.arange(video_num)
+        self.video_num = len(list(video_dict.keys()))
 
         # load raw data
         if training: ##############
@@ -137,28 +139,33 @@ class MyDataSet(Dataset):
         # for key in list(data_dict.keys()):
         #     data_dict[key] = torch.Tensor(data_dict[key]).float()
         self.data_dict = data_dict
-
         # if data_aug and training:
         #         #     # add train video with short proposals
         #         #     add_list = np.where(np.array(train_video_mean_len) < 0.2)
         #         #     add_list = np.reshape(add_list, [-1])
         #         #     video_list = np.concatenate([video_list, add_list[:]], 0)
 
-        self.video_list = video_list
-        np.random.shuffle(self.video_list)
 
     def __len__(self):
-        return len(self.video_list)
+        return self.video_num
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-        idx = self.video_list[idx]
         data_dict = self.data_dict
         gt_action = data_dict['gt_action'][idx]
         gt_start = data_dict['gt_start'][idx]
         gt_end = data_dict['gt_end'][idx]
-        feature = torch.Tensor(data_dict['feature'][idx])
+
+
+
+        ## feature #######################################################
+        # feature = torch.Tensor(data_dict['feature'][idx])
+        video_name = list(self.video_dict.keys())[idx]
+        video_feat = load_feature(self.config, self.config.feat_dir, video_name)
+        feature = torch.Tensor(np.transpose(video_feat, [1, 0]))
+        #########################################################
+
 
         tmp_segment = []
         for i, j in zip(gt_start, gt_end):

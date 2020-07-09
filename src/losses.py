@@ -157,7 +157,7 @@ class SetCriterion(nn.Module):
         pred_segments = outputs['segments'][idx]
         target_segments = torch.cat([t['segments'][i] for t, (_, i) in zip(targets, indices)], dim=0)
 
-        loss_segments = F.l1_loss(pred_segments, pred_segments, reduction='none')
+        loss_segments = F.l1_loss(pred_segments, target_segments, reduction='none')
 
         losses = {}
         losses['loss_segments'] = loss_segments.sum() / num_segments

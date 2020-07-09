@@ -46,13 +46,13 @@ class DetrTrainer(BaseTrainer):
         return criterion
 
     def run(self):
-        self.logx.msg("Start training")
+        self.logx.msg("| Start Training")
         for epoch in range(self.EPOCH):
             self.epoch = epoch
             torch.cuda.empty_cache()
-            logx.msg('|  ---------------- Train  Epoch : {} ----------------  |'.format(epoch))
+            logx.msg('| ------------------------------------- Train  Epoch : {} ------------------------------------- |'.format(epoch))
             self.train()
-            logx.msg('|  ----------------  Val   Epoch : {} ----------------  |'.format(epoch))
+            logx.msg('| -------------------------------------  Val   Epoch : {} ------------------------------------- |'.format(epoch))
             self.val()
 
     def train(self):
@@ -110,11 +110,11 @@ class DetrTrainer(BaseTrainer):
             N_step = 20
             if (n_iter+1) % N_step == 0:
                 #TODO: 累积ce、l1、diou loss step的平均时间
-                print(  '| Epoch {:>3d} Step {:>6d} '
-                        '| Total Loss: {:.5f} '
-                        '| CE Loss: {:.5f} '
-                        '| L1 Loss: {:.5f} '
-                        '| DIoU Loss: {:.5f} |'
+                print(  '| Epoch {:<3d} Step {:<5d} '
+                        '| Total Loss: {:.4f} '
+                        '| CE Loss: {:.4f} '
+                        '| L1 Loss: {:.4f} '
+                        '| DIoU Loss: {:.4f} |'
                         .format(
                             self.epoch, n_iter+1,
                             steps_losses['total']/N_step,
@@ -137,7 +137,7 @@ class DetrTrainer(BaseTrainer):
             self.logx.metric('val', metrics, self.epoch)
             self.VAL_LOSS = epoch_loss
 
-        self.logx.msg('| Epoch {:>3d}   Total Loss: {:.5f}   Train Time: {:.0f} | '
+        self.logx.msg('| Epoch {:<3d} | Total Loss: {:.4f} | Train Time: {:.0f} | '
                           .format(self.epoch, epoch_loss, (time.time() - epoch_time) / 60))
 
         save_dict = {
