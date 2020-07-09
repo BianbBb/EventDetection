@@ -128,10 +128,11 @@ class SetCriterion(nn.Module):
 
         losses = {'loss_ce': loss_ce/len(target_classes_o)}
 
-        # if log:#????是否需要保留？
-        #     # TODO this should probably be a separate loss, not hacked in this one here
-        #     losses['class_error'] = 100 - accuracy(pred_classes[idx], target_classes_o)[0]
+        if log:#????是否需要保留？
+            # TODO this should probably be a separate loss, not hacked in this one here
+            losses['class_error'] = 100 - accuracy(pred_classes[idx], target_classes_o)[0]
         return losses
+
 
     @torch.no_grad()
     def loss_cardinality(self, outputs, targets, indices, num_segments):
@@ -146,6 +147,8 @@ class SetCriterion(nn.Module):
         card_err = F.l1_loss(card_pred.float(), tgt_lengths.float())
         losses = {'cardinality_error': card_err}
         return losses
+
+
 
     def loss_segments(self, outputs, targets, indices, num_segments):
         """Compute the losses related to the bounding segments, the L1 regression loss and the DIoU loss
@@ -182,8 +185,8 @@ class SetCriterion(nn.Module):
     def get_loss(self, loss, outputs, targets, indices, num_segments, **kwargs):
         loss_map = {
             'classes': self.loss_classes,
-            'cardinality': self.loss_cardinality,
             'segments': self.loss_segments,
+            'cardinality': self.loss_cardinality,
             # 'masks': self.loss_masks
         }
         assert loss in loss_map, f'do you really want to compute {loss} loss?'
