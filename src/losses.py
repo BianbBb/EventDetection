@@ -108,9 +108,9 @@ class SetCriterion(nn.Module):
 
         #batch_idx = idx[0].tolist()
         target_classes_o = torch.cat([t["classes"][J] for t, (_, J) in zip(targets, indices)]) #获得indices对应的segment的实际动作类别
-        target_classes_o = target_classes_o.to(dtype=torch.int32)
+        target_classes_o = target_classes_o.to(dtype=torch.int64)
         target_classes = torch.full(pred_classes.shape[:2], self.num_classes,
-                                    dtype=torch.int32, device=pred_classes.device)
+                                    dtype=torch.int64, device=pred_classes.device)
         target_classes[idx] = target_classes_o
 
         loss_ce = F.cross_entropy(pred_classes.softmax(-1).transpose(1, 2), target_classes)

@@ -111,12 +111,12 @@ class MyDataSet(Dataset):
         training = True
         if mode == 'training':
             video_dict = train_dict
-            video_dict = dict(list(video_dict.items())[:600]) # TODO：comment out this line
+            video_dict = dict(list(video_dict.items())[:200]) # TODO：comment out this line
 
         else:
             training = False
             video_dict = val_dict
-            video_dict = dict(list(video_dict.items())[:600])  # TODO：comment out this line
+            video_dict = dict(list(video_dict.items())[:100])  # TODO：comment out this line
 
         self.mode = mode
         self.video_dict = video_dict
@@ -151,11 +151,11 @@ class MyDataSet(Dataset):
         gt_start = data_dict['gt_start'][idx]
         gt_end = data_dict['gt_end'][idx]
 
-        feature = torch.from_numpy(data_dict['feature'][idx])
+        feature = torch.from_numpy(data_dict['feature'][idx]).type(torch.FloatTensor)
 
         tmp_segment = []
         for i, j in zip(gt_start, gt_end):
-            tmp_segment.append( [i, j])
+            tmp_segment.append([i, j])
 
         gt_segment = xy2cl(torch.Tensor(tmp_segment)).numpy().tolist()
 
