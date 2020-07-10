@@ -35,7 +35,7 @@ sampler_val = torch.utils.data.SequentialSampler(dataset_val)
 batch_sampler_train = torch.utils.data.BatchSampler(sampler_train, config.batch_size, drop_last=True)
 
 train_dl = DataLoader(dataset_train, batch_sampler=batch_sampler_train,collate_fn=collate_fn, num_workers=0)
-val_dl = DataLoader(dataset_val, config.batch_size, sampler=sampler_val,drop_last=False, collate_fn=collate_fn, num_workers=0)
+val_dl = DataLoader(dataset_val, config.batch_size, sampler=sampler_val,drop_last=True, collate_fn=collate_fn, num_workers=0)
 
 
 #print('dataload time:{:.0f}'.format((time.time()-start_time)/60))

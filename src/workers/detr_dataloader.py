@@ -77,15 +77,12 @@ def getFullData(config, video_dict ,classes_index,last_channel=False, training=T
         if training:
             train_video_mean_len.append(mean_len)
 
-        # load feature
-        ## feature ###################################################
         video_feat = load_feature(config, data_dir, video_name)
 
         if not last_channel:
             video_feat = np.transpose(video_feat, [1, 0])
-        batch_anchor_feature.append(video_feat)
-        ###################################################
 
+        batch_anchor_feature.append(video_feat)
         batch_label_action.append(video_labels)
         batch_label_start.append(video_starts)
         batch_label_end.append(video_ends)
@@ -130,14 +127,11 @@ class MyDataSet(Dataset):
         self.video_num = len(list(video_dict.keys()))
 
         # load raw data
-        if training: ##############
+        if training:
             data_dict, train_video_mean_len = getFullData(config, video_dict, self.classes_index,last_channel=False, training=True)
-        else:##############
+        else:
             data_dict = getFullData(config, video_dict, self.classes_index, last_channel=False, training=False)
 
-        # transform data to torch tensor
-        # for key in list(data_dict.keys()):
-        #     data_dict[key] = torch.Tensor(data_dict[key]).float()
         self.data_dict = data_dict
         # if data_aug and training:
         #         #     # add train video with short proposals
@@ -157,15 +151,7 @@ class MyDataSet(Dataset):
         gt_start = data_dict['gt_start'][idx]
         gt_end = data_dict['gt_end'][idx]
 
-
-
-        ## feature #######################################################
-        feature = torch.Tensor(data_dict['feature'][idx])
-        # video_name = list(self.video_dict.keys())[idx]
-        # video_feat = load_feature(self.config, self.config.feat_dir, video_name)
-        # feature = torch.Tensor(np.transpose(video_feat, [1, 0]))
-        #########################################################
-
+        feature = torch.from_numpy(data_dict['feature'][idx])
 
         tmp_segment = []
         for i, j in zip(gt_start, gt_end):
