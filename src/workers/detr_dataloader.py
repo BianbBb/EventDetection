@@ -116,7 +116,7 @@ class MyDataSet(Dataset):
         else:
             training = False
             video_dict = val_dict
-            video_dict = dict(list(video_dict.items())[:100])  # TODO：comment out this line
+            video_dict = dict(list(video_dict.items())[:200])  # TODO：comment out this line
 
         self.mode = mode
         self.video_dict = video_dict
