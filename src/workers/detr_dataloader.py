@@ -66,6 +66,7 @@ def getFullData(config, video_dict ,classes_index,last_channel=False, training=T
             tmp_start = max(min(1, tmp_start / video_second), 0)
             tmp_end = max(min(1, tmp_end / video_second), 0)
             gt_lens.append(tmp_end - tmp_start)
+
             video_labels.append(classes_index[tmp_label])
             video_starts.append(tmp_start)
             video_ends.append(tmp_end)
@@ -112,7 +113,6 @@ class MyDataSet(Dataset):
         if mode == 'training':
             video_dict = train_dict
             video_dict = dict(list(video_dict.items())[:100]) # TODO：comment out this line
-
         else:
             training = False
             video_dict = val_dict
