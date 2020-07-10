@@ -113,7 +113,7 @@ class SetCriterion(nn.Module):
                                     dtype=torch.int64, device=pred_classes.device)
         target_classes[idx] = target_classes_o
 
-        loss_ce = F.cross_entropy(pred_classes.transpose(1, 2), target_classes)
+        loss_ce = F.cross_entropy(pred_classes.softmax(-1).transpose(1, 2), target_classes)
         # print('---------------')
         # print('indices')
         # print(indices)

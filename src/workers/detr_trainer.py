@@ -18,9 +18,7 @@ class DetrTrainer(BaseTrainer):
         self.val_loader = val_loader
         # loss
         self.aux_loss = config.aux_loss
-
         self.postprocessors = {'bbox': PostProcess()} ##############???????????????
-
         self.BEST_VAL_LOSS = np.inf  # 在验证集上的最好结果
         self.VAL_LOSS = np.inf
         # log manager
@@ -68,12 +66,9 @@ class DetrTrainer(BaseTrainer):
         else:
             self.net.eval()
 
-        # step_time = AverageMeter()
-        results = {}
-        # avg_loss_stats = {L: AverageMeter() for L in self.loss_stats}
         epoch_loss = 0 # 一个epoch的总loss
         epoch_time = time.time()
-        steps_losses = {'total':0,'loss_ce':0,'loss_segments':0,'loss_diou':0} # 几个step的loss
+        steps_losses = {'total':0,'loss_ce':0,'loss_segments':0,'loss_diou':0} # N_step个step的loss
         for n_iter, (samples, targets) in enumerate(data_loader):
             torch.cuda.empty_cache()
             samples = torch.cat([i.unsqueeze(0) for i in samples], dim=0)
