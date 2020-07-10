@@ -41,6 +41,7 @@ val_dl = DataLoader(dataset_val, config.batch_size, sampler=sampler_val,drop_las
 #print('dataload time:{:.0f}'.format((time.time()-start_time)/60))
 
 model = network(config)
+
 trainer = DetrTrainer(config, model, train_dl, val_dl,optimizer='Adam')
 trainer.run()
 

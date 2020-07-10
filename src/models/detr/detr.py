@@ -87,7 +87,7 @@ def build_detr(config):
     model = DETR(
         position_encoding,
         transformer,
-        num_classes=53,
+        num_classes=config.num_classes,
         num_queries=config.num_queries,
         aux_loss=False,
         input_c=config.feature_dim

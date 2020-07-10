@@ -114,18 +114,6 @@ class SetCriterion(nn.Module):
         target_classes[idx] = target_classes_o
 
         loss_ce = F.cross_entropy(pred_classes.transpose(1, 2), target_classes, self.empty_weight)
-        # print('---------------')
-        # print('indices')
-        # print(indices)
-        # print('idx')
-        # print(idx)
-        # print('target_classes_o')
-        # print(target_classes_o)
-        # print('target_classes')
-        # print( target_classes)
-        # print(loss_ce/len(target_classes_o))
-        # print('---------------')
-
         losses = {'loss_ce': loss_ce/len(target_classes_o)}
         losses['class_error'] = 100 - accuracy(pred_classes[idx], target_classes_o)[0]
         return losses
@@ -228,5 +216,4 @@ class SetCriterion(nn.Module):
                     l_dict = self.get_loss(loss, aux_outputs, targets, indices, num_segments, **kwargs)
                     l_dict = {k + f'_{i}': v for k, v in l_dict.items()}
                     losses.update(l_dict)
-
         return losses
