@@ -45,7 +45,7 @@ training:
   gpu_id: 0
   resume: False  # if load pre-trained model
   learning_rate: 3e-4
-  epoch_num: 10
+  epoch_num: 200
   batch_size: 12
 
 model:

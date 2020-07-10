@@ -48,9 +48,9 @@ class DetrTrainer(BaseTrainer):
         for epoch in range(self.EPOCH):
             self.epoch = epoch
             torch.cuda.empty_cache()
-            logx.msg('| ------------------------------------- Train  Epoch : {} ------------------------------------- |'.format(epoch))
+            logx.msg('| ---------------------------------------  Train  Epoch : {} --------------------------------------- |'.format(epoch))
             self.train()
-            logx.msg('| -------------------------------------  Val   Epoch : {} ------------------------------------- |'.format(epoch))
+            logx.msg('| ---------------------------------------   Val   Epoch : {} --------------------------------------- |'.format(epoch))
             self.val()
 
     def train(self):
@@ -75,6 +75,18 @@ class DetrTrainer(BaseTrainer):
             targets = list(targets)
             samples = samples.to(self.device)
             outputs = self.net(samples)
+
+            #####################
+            # print('----------')
+            # print('samples')
+            # print(samples[0][0])
+            # print(samples[1][0])
+            # print('targets')
+            # print(targets)
+            # print('outputs')
+            # print(outputs)
+            #####################
+
             targets = [{k: torch.FloatTensor(v).to(self.device) for k, v in t.items()} for t in targets]
 
             loss_dict = self.criterion(outputs, targets)
@@ -132,8 +144,8 @@ class DetrTrainer(BaseTrainer):
             self.logx.metric('val', metrics, self.epoch)
             self.VAL_LOSS = epoch_loss
 
-        self.logx.msg('| Epoch {:<3d} | Total Loss: {:.4f} | Train Time: {:.0f} | '
-                          .format(self.epoch, epoch_loss, (time.time() - epoch_time) / 60))
+        self.logx.msg('| Epoch {:<14d} | Total Loss: {:.4f} | Time: {:<8.0f}s | '
+                          .format(self.epoch, epoch_loss, (time.time() - epoch_time)))
 
         save_dict = {
             'epoch': self.epoch + 1,
