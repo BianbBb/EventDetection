@@ -97,14 +97,12 @@ class SetCriterion(nn.Module):
         empty_weight[-1] = self.eos_coef
         self.register_buffer('empty_weight', empty_weight)
 
-    def loss_classes(self, outputs, targets, indices, num_segments, log=True):
+    def loss_classes(self, outputs, targets, indices, num_segments):
         """Classification loss (NLL)
         targets dicts must contain the key "classes" containing a tensor of dim [nb_target_segments]
         """
         assert 'classes' in outputs
         pred_classes = outputs['classes'].softmax(-1)
-        print(pred_classes)
-        print(outputs)
 
         idx = self._get_src_permutation_idx(indices) # batch_idx, src_idx
 
@@ -115,7 +113,10 @@ class SetCriterion(nn.Module):
                                     dtype=torch.int64, device=pred_classes.device)
         target_classes[idx] = target_classes_o
 
-        loss_ce = F.cross_entropy(pred_classes.transpose(1, 2), target_classes)
+        print('-----')
+        print(pred_classes)
+
+        loss_ce = F.cross_entropy(pred_classes.transpose(1, 2), target_classes, self.empty_weight)
         # print('---------------')
         # print('indices')
         # print(indices)
@@ -129,11 +130,7 @@ class SetCriterion(nn.Module):
         # print('---------------')
 
         losses = {'loss_ce': loss_ce/len(target_classes_o)}
-
-        if log:#????是否需要保留？
-            # TODO this should probably be a separate loss, not hacked in this one here
-
-            losses['class_error'] = 100 - accuracy(pred_classes[idx], target_classes_o)[0]
+        losses['class_error'] = 100 - accuracy(pred_classes[idx], target_classes_o)[0]
         return losses
 
 
