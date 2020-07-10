@@ -34,8 +34,8 @@ def getDatasetDict(config, video_info_file, video_filter=False):
     return train_dict, val_dict, test_dict
 
 
-def getFullData(config, video_dict ,classes_index,last_channel=False, training=True):
-    tscale = config.tscale
+def getFullData(config, video_dict ,classes_index,last_channel=False):
+
     data_dir = config.feat_dir
     video_list = list(video_dict.keys())
 
@@ -43,8 +43,6 @@ def getFullData(config, video_dict ,classes_index,last_channel=False, training=T
     batch_label_action = []
     batch_label_start = []
     batch_label_end = []
-
-    train_video_mean_len = []
 
     for i in range(len(video_list)): #TODO:tqdm 每一个video
         if i % 100 == 0:
@@ -75,8 +73,6 @@ def getFullData(config, video_dict ,classes_index,last_channel=False, training=T
         mean_len = 2
         if len(gt_lens):
             mean_len = np.mean(gt_lens)
-        if training:
-            train_video_mean_len.append(mean_len)
 
         video_feat = load_feature(config, data_dir, video_name)
 
@@ -88,57 +84,29 @@ def getFullData(config, video_dict ,classes_index,last_channel=False, training=T
         batch_label_start.append(video_starts)
         batch_label_end.append(video_ends)
 
-
-
     dataDict = {
         "gt_action": batch_label_action,
         "gt_start": batch_label_start,
         "gt_end": batch_label_end,
         "feature": batch_anchor_feature, ## feature
     }
-    if training:
-        return dataDict, train_video_mean_len
-    else:
-        return dataDict
+
+    return dataDict
 
 
 class MyDataSet(Dataset):
-    def __init__(self, config, mode='training'):
+    def __init__(self, config, video_dict):
         self.config = config
-        video_info_file = config.video_info_file
-        video_filter = config.video_filter
-        data_aug = config.data_aug
-        train_dict, val_dict, test_dict = getDatasetDict(config, video_info_file, video_filter)
-        training = True
-        if mode == 'training':
-            video_dict = train_dict
-            video_dict = dict(list(video_dict.items())[:60]) # TODO：comment out this line
-        else:
-            training = False
-            video_dict = val_dict
-            video_dict = dict(list(video_dict.items())[:60])  # TODO：comment out this line
-
-        self.mode = mode
+        #video_dict = dict(list(video_dict.items())[:60]) # TODO：comment out this line
         self.video_dict = video_dict
 
         with open(config.index_file,'r') as f:
             self.classes_index = json.load(f)
 
         self.video_num = len(list(video_dict.keys()))
-
         # load raw data
-        if training:
-            data_dict, train_video_mean_len = getFullData(config, video_dict, self.classes_index,last_channel=False, training=True)
-        else:
-            data_dict = getFullData(config, video_dict, self.classes_index, last_channel=False, training=False)
-
+        data_dict = getFullData(config, video_dict, self.classes_index, last_channel=False)
         self.data_dict = data_dict
-        # if data_aug and training:
-        #         #     # add train video with short proposals
-        #         #     add_list = np.where(np.array(train_video_mean_len) < 0.2)
-        #         #     add_list = np.reshape(add_list, [-1])
-        #         #     video_list = np.concatenate([video_list, add_list[:]], 0)
-
 
     def __len__(self):
         return self.video_num

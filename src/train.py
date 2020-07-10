@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 
 from models.model import network
 from utils.read_config import Config
-from workers.detr_dataloader import MyDataSet
+from workers.detr_dataloader import MyDataSet,getDatasetDict
 from workers.detr_trainer import DetrTrainer
 import time
 
@@ -22,8 +22,9 @@ def collate_fn(batch):
 
 #start_time = time.time()
 # dataset
-dataset_train = MyDataSet(config, mode='training')
-dataset_val = MyDataSet(config, mode='validation')
+train_dict, val_dict, test_dict = getDatasetDict(config, config.video_info_file, config.video_filter)
+dataset_train = MyDataSet(config, train_dict)
+dataset_val = MyDataSet(config, val_dict)
 
 # if args.distributed:
 #     sampler_train = DistributedSampler(dataset_train)
