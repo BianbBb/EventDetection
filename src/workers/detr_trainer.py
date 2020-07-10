@@ -48,9 +48,9 @@ class DetrTrainer(BaseTrainer):
         for epoch in range(self.EPOCH):
             self.epoch = epoch
             torch.cuda.empty_cache()
-            logx.msg('| ---------------------------------------  Train  Epoch : {} --------------------------------------- |'.format(epoch))
+            logx.msg('| --------------------------------------  Train  Epoch : {:<3d} -------------------------------------- |'.format(epoch))
             self.train()
-            logx.msg('| ---------------------------------------   Val   Epoch : {} --------------------------------------- |'.format(epoch))
+            logx.msg('| --------------------------------------   Val   Epoch : {:<3d} -------------------------------------- |'.format(epoch))
             self.val()
 
     def train(self):
