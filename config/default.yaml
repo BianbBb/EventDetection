@@ -46,7 +46,7 @@ training:
   resume: False  # if load pre-trained model
   learning_rate: 3e-4
   epoch_num: 10
-  batch_size: 8
+  batch_size: 12
 
 model:
   model_name: DETR  # DBG or DETR
@@ -69,6 +69,6 @@ model:
 
 testing:
   mode: validation # validation or testing
-  test_batch_size: 8
+  test_batch_size: 12
   pth_name: DBG_reduce_dim-0627-1512-tianchi # model weights
 
