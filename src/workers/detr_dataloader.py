@@ -111,12 +111,12 @@ class MyDataSet(Dataset):
         training = True
         if mode == 'training':
             video_dict = train_dict
-            #video_dict = dict(list(video_dict.items())[:60]) # TODO：comment out this line
+            video_dict = dict(list(video_dict.items())[:600]) # TODO：comment out this line
 
         else:
             training = False
             video_dict = val_dict
-            #video_dict = dict(list(video_dict.items())[:60])  # TODO：comment out this line
+            video_dict = dict(list(video_dict.items())[:600])  # TODO：comment out this line
 
         self.mode = mode
         self.video_dict = video_dict
