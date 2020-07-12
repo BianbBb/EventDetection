@@ -1,7 +1,6 @@
 import time
 import os
 import shutil
-
 import torch
 import numpy as np
 from runx.logx import logx
@@ -20,7 +19,8 @@ class DetrTrainer(BaseTrainer):
         self.val_loader = val_loader
         # loss
         self.aux_loss = config.aux_loss
-        self.postprocessors = {'bbox': PostProcess()}  ##############???????????????
+
+        self.postprocessors = {'bbox': PostProcess()} ##############???????????????
         self.VAL_LOSS = np.inf
         # log manager
         self.logx = logx
@@ -52,13 +52,9 @@ class DetrTrainer(BaseTrainer):
         for epoch in range(self.EPOCH):
             self.epoch = epoch
             torch.cuda.empty_cache()
-            self.logx.msg(
-                '| ---------------------------------------  Train  Epoch : {} --------------------------------------- |'.format(
-                    epoch))
+            logx.msg('| --------------------------------------  Train  Epoch : {:<3d} -------------------------------------- |'.format(epoch))
             self.train()
-            self.logx.msg(
-                '| ---------------------------------------   Val   Epoch : {} --------------------------------------- |'.format(
-                    epoch))
+            logx.msg('| --------------------------------------   Val   Epoch : {:<3d} -------------------------------------- |'.format(epoch))
             self.val()
 
     def train(self):
@@ -74,9 +70,9 @@ class DetrTrainer(BaseTrainer):
         else:
             self.net.eval()
 
+
         epoch_loss_dict = {'total': 0, 'loss_ce': 0, 'loss_segments': 0, 'loss_diou': 0}
         epoch_time = time.time()
-
         for n_iter, (samples, targets) in enumerate(data_loader):
             # data
             samples = torch.cat([i.unsqueeze(0) for i in samples], dim=0)
@@ -126,19 +122,19 @@ class DetrTrainer(BaseTrainer):
                               ))
 
         metrics = {
-            'total_loss': epoch_loss_dict['total'] / n_iter+1,
-            'ce_loss': epoch_loss_dict['loss_ce'] / n_iter+1,
-            'segments_loss': epoch_loss_dict['loss_segments'] / n_iter+1,
-            'iou_loss': epoch_loss_dict['loss_diou'] / n_iter+1
+            'total_loss': epoch_loss_dict['total'] / (n_iter+1),
+            'ce_loss': epoch_loss_dict['loss_ce'] / (n_iter+1),
+            'segments_loss': epoch_loss_dict['loss_segments'] / (n_iter+1),
+            'iou_loss': epoch_loss_dict['loss_diou'] / (n_iter+1)
         }
         if training:
             self.logx.metric('train', metrics, self.epoch)
         else:
             self.logx.metric('val', metrics, self.epoch)
-            self.VAL_LOSS = epoch_loss_dict['total']
+            self.VAL_LOSS = epoch_loss_dict['total'] / (n_iter + 1)
 
         self.logx.msg('| Epoch {:<14d} | Total Loss: {:.4f} | Time: {:<8.0f}s | '
-                      .format(self.epoch, epoch_loss_dict['total'], (time.time() - epoch_time)))
+                      .format(self.epoch, epoch_loss_dict['total'] / (n_iter+1), (time.time() - epoch_time)))
 
         save_dict = {
             'epoch': self.epoch + 1,
