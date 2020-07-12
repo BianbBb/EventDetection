@@ -1,6 +1,6 @@
 dataset:
   dataset_name: activitynet #  activitynet  thumos   tianchi
-  #dataset_name: activitynet
+
   tianchi:
     num_classes: 53
     feat_dir: /data/byh/EventDetection/train/i3d_400/
@@ -44,9 +44,9 @@ saver:
 training:
   gpu_id: 0
   resume: False  # if load pre-trained model
-  learning_rate: 3e-4
+  learning_rate: 0.0001
   epoch_num: 200
-  batch_size: 12
+  batch_size: 16
 
 model:
   model_name: DETR  # DBG or DETR

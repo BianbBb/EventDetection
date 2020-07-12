@@ -16,3 +16,10 @@ def network(config):
     return model
 
 
+if __name__ == '__main__':
+    from torchsummary import summary
+    # 注释前面
+    model = network()
+    summary(model.cuda(),(1024,100),batch_size=2)
+
+

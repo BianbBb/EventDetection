@@ -4,7 +4,6 @@ from utils.utils import getDatasetDict, getFullData
 import numpy as np
 
 
-
 class MyDataSet(Dataset):
 
     def __init__(self, config, mode='training'):
@@ -62,7 +61,6 @@ class MyDataSet(Dataset):
         gt_start = data_dict['gt_start'][idx].unsqueeze(0)
         gt_end = data_dict['gt_end'][idx].unsqueeze(0)
         feature = data_dict['feature'][idx]
-        iou_label = []
         iou_label = data_dict['iou_label'][idx].unsqueeze(0)
         gt_action = self.classes_index[gt_action]
         return gt_action, gt_start, gt_end, feature, iou_label

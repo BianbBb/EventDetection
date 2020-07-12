@@ -62,8 +62,6 @@ def xy2cl(x):
     return y
 
 
-
-
 if __name__ == '__main__':
     x = torch.rand((100, 2))
     print(xy2cl(x))

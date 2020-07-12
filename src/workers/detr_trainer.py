@@ -1,6 +1,4 @@
 import time
-import os
-import shutil
 import torch
 import numpy as np
 from runx.logx import logx
@@ -18,22 +16,22 @@ class DetrTrainer(BaseTrainer):
         self.train_loader = train_loader
         self.val_loader = val_loader
         # loss
-        self.aux_loss = config.aux_loss
-
-        self.postprocessors = {'bbox': PostProcess()} ##############???????????????
         self.VAL_LOSS = np.inf
+        self.aux_loss = config.aux_loss
         # log manager
         self.logx = logx
-        if os.path.exists(config.log_dir):
-            shutil.rmtree(config.log_dir)
         self.logx.initialize(logdir=config.log_dir, coolname=True, tensorboard=True)
+        # hyper param
         self.epoch = 0
         self.loss_map = ['classes', 'cardinality', 'segments', ]
         self.criterion = self.init_criterion()
+        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=100, gamma=0.1)
         self.max_norm = 0.1
+        # post
+        self.postprocessors = {'bbox': PostProcess()}
 
     def init_criterion(self):
-        weight_dict = {'loss_ce': 1, 'loss_segments': 3, 'loss_diou': 2}
+        weight_dict = {'loss_ce': 1, 'loss_segments': 5, 'loss_diou': 2}
         # 根据config进行设置
         # TODO this is a hack
         if self.aux_loss:
@@ -49,12 +47,13 @@ class DetrTrainer(BaseTrainer):
 
     def run(self):
         self.logx.msg("| Start Training")
+        print("log saved in", self.config.log_dir)
         for epoch in range(self.EPOCH):
             self.epoch = epoch
             torch.cuda.empty_cache()
-            logx.msg('| --------------------------------------  Train  Epoch : {:<3d} -------------------------------------- |'.format(epoch))
+            self.logx.msg('| --------------  Train  Epoch : {:<3d} -------------- |'.format(epoch))
             self.train()
-            logx.msg('| --------------------------------------   Val   Epoch : {:<3d} -------------------------------------- |'.format(epoch))
+            self.logx.msg('| --------------   Val   Epoch : {:<3d} -------------- |'.format(epoch))
             self.val()
 
     def train(self):
@@ -69,7 +68,6 @@ class DetrTrainer(BaseTrainer):
             self.net.train()
         else:
             self.net.eval()
-
 
         epoch_loss_dict = {'total': 0, 'loss_ce': 0, 'loss_segments': 0, 'loss_diou': 0}
         epoch_time = time.time()
@@ -102,10 +100,11 @@ class DetrTrainer(BaseTrainer):
 
             if training:
                 self.optimizer.zero_grad()
+                # self.scheduler.step()
                 step_loss.backward()
                 # TODO: max_norm 的作用？
-                if self.max_norm > 0:
-                    torch.nn.utils.clip_grad_norm_(self.net.parameters(), self.max_norm)
+                # if self.max_norm > 0:
+                #     torch.nn.utils.clip_grad_norm_(self.net.parameters(), self.max_norm)
                 self.optimizer.step()
 
             # 每隔N_step打印一次

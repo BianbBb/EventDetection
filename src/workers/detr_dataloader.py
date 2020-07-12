@@ -97,15 +97,15 @@ def getFullData(config, video_dict, classes_index, last_channel=False):
 class MyDataSet(Dataset):
     def __init__(self, config, video_dict):
         self.config = config
-        video_dict = dict(list(video_dict.items())[:600]) # TODO：comment out this line
+        # video_dict = dict(list(video_dict.items())[:600])  # TODO：comment out this line
         self.video_dict = video_dict
 
         with open(config.index_file, 'r') as f:
             self.classes_index = json.load(f)
 
-        self.video_num = len(list(video_dict.keys()))
+        self.video_num = len(video_dict.keys())
         # load raw data
-        data_dict = getFullData(config, video_dict, self.classes_index, last_channel=False)
+        data_dict = getFullData(config, video_dict, self.classes_index)
         self.data_dict = data_dict
 
     def __len__(self):
@@ -118,7 +118,6 @@ class MyDataSet(Dataset):
         gt_action = data_dict['gt_action'][idx]
         gt_start = data_dict['gt_start'][idx]
         gt_end = data_dict['gt_end'][idx]
-
         feature = torch.from_numpy(data_dict['feature'][idx]).type(torch.FloatTensor)
 
         tmp_segment = []

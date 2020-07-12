@@ -24,13 +24,8 @@ train_dict, val_dict, test_dict = getDatasetDict(config.video_info_file, config.
 dataset_train = MyDataSet(config, train_dict)
 dataset_val = MyDataSet(config, val_dict)
 
-sampler_train = torch.utils.data.RandomSampler(dataset_train)
-sampler_val = torch.utils.data.SequentialSampler(dataset_val)
-
-batch_sampler_train = torch.utils.data.BatchSampler(sampler_train, config.batch_size, drop_last=True)
-
-train_dl = DataLoader(dataset_train, batch_sampler=batch_sampler_train, collate_fn=collate_fn, num_workers=0)
-val_dl = DataLoader(dataset_val, config.batch_size, sampler=sampler_val, drop_last=False, collate_fn=collate_fn, num_workers=0)
+train_dl = DataLoader(dataset_train, config.batch_size, collate_fn=collate_fn, shuffle=True)
+val_dl = DataLoader(dataset_val, config.batch_size, collate_fn=collate_fn, shuffle=False)
 
 
 model = network(config)
@@ -38,20 +33,6 @@ model = network(config)
 trainer = DetrTrainer(config, model, train_dl, val_dl, optimizer='AdamW')
 trainer.run()
 
-
-# if __name__ == '__main__':
-#     from torchsummary import summary
-#     # 注释前面
-#     model = network(config)
-#     summary(model.cuda(),(1024,100),batch_size=2)
-    # 查看model para size 和 合适的batch_size
-
-#     for samples, targets in train_dl:
-#         print('--------------')
-#         print(samples[0].size())
-#         print(len(targets))
-#         print(targets[0])
-#         print(targets[1])
 
 
 
