@@ -1,0 +1,41 @@
+Start training
+|  Train  Epoch : 0 ------------------------  |
+Epoch-0 Training Loss: Total - 1.05420
+|  Val  Epoch : 0 ------------------------  |
+Epoch-0 Validation Loss: Total - 1.91964
+|  Train  Epoch : 1 ------------------------  |
+Epoch-1 Training Loss: Total - 0.95342
+|  Val  Epoch : 1 ------------------------  |
+Epoch-1 Validation Loss: Total - 1.83644
+|  Train  Epoch : 2 ------------------------  |
+Epoch-2 Training Loss: Total - 0.81094
+|  Val  Epoch : 2 ------------------------  |
+Epoch-2 Validation Loss: Total - 1.89263
+|  Train  Epoch : 3 ------------------------  |
+Epoch-3 Training Loss: Total - 0.78588
+|  Val  Epoch : 3 ------------------------  |
+Epoch-3 Validation Loss: Total - 1.81494
+|  Train  Epoch : 4 ------------------------  |
+Epoch-4 Training Loss: Total - 0.74469
+|  Val  Epoch : 4 ------------------------  |
+Epoch-4 Validation Loss: Total - 1.91064
+|  Train  Epoch : 5 ------------------------  |
+Epoch-5 Training Loss: Total - 0.79204
+|  Val  Epoch : 5 ------------------------  |
+Epoch-5 Validation Loss: Total - 1.69712
+|  Train  Epoch : 6 ------------------------  |
+Epoch-6 Training Loss: Total - 0.89974
+|  Val  Epoch : 6 ------------------------  |
+Epoch-6 Validation Loss: Total - 1.46390
+|  Train  Epoch : 7 ------------------------  |
+Epoch-7 Training Loss: Total - 0.77805
+|  Val  Epoch : 7 ------------------------  |
+Epoch-7 Validation Loss: Total - 1.83699
+|  Train  Epoch : 8 ------------------------  |
+Epoch-8 Training Loss: Total - 0.78309
+|  Val  Epoch : 8 ------------------------  |
+Epoch-8 Validation Loss: Total - 1.78244
+|  Train  Epoch : 9 ------------------------  |
+Epoch-9 Training Loss: Total - 0.78229
+|  Val  Epoch : 9 ------------------------  |
+Epoch-9 Validation Loss: Total - 1.64135

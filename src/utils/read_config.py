@@ -26,6 +26,7 @@ class Config(object):
 
         """ Globel Setting """
         config = read_config()
+        timestamp = time.strftime('%m%d-%H%M', time.localtime())
 
         """ Dataset Setting """
         self.dataset_name = config['dataset']['dataset_name']
@@ -79,10 +80,10 @@ class Config(object):
         saver_info = config['saver']
         self.exp_dir = saver_info['exp_dir']
         self.results_dir = saver_info['results_dir']
-        self.log_dir = saver_info['log_dir']
+        self.log_dir = os.path.join(saver_info['log_dir'], 'logs{}'.format(timestamp))
 
         # Train
-        timestamp = time.strftime('%m%d-%H%M', time.localtime())
+
         train_pth_save_dir = '{}-{}-{}'.format(self.model_name, timestamp, self.dataset_name)
         self.train_pth_save_dir = os.path.join(self.exp_dir, train_pth_save_dir)
 

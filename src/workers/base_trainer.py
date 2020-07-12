@@ -5,7 +5,7 @@ import numpy as np
 
 
 class BaseTrainer(object):
-    def __init__(self, config, net, optimizer=None):
+    def __init__(self, config, net, optimizer='Adam'):
         self.set_seed(2020)
         self.config = config
         self.net = net
@@ -19,7 +19,8 @@ class BaseTrainer(object):
 
         if self.config.resume:  # 从文件中读取模型参数
             self.load_weight()
-        self.set_optimizer(optimizer)
+        print(optimizer)
+        self.optimizer = self.set_optimizer(optimizer)
 
     def set_seed(self, seed=2020):
         random.seed(seed)
@@ -38,11 +39,14 @@ class BaseTrainer(object):
             print('Can not find feature.pkl !')
 
     def set_optimizer(self, optimizer_name):
-        if optimizer_name is 'Adam':
-            self.optimizer = torch.optim.Adam(self.net.parameters(), lr=self.config.learning_rate)
-        elif optimizer_name is 'SGD':
-            self.optimizer = torch.optim.SGD(self.net.parameters(), lr=self.config.learning_rate, momentum=0.9,
-                                             weight_decay=5e-4)
+        if optimizer_name == 'Adam':
+            optimizer = torch.optim.Adam(self.net.parameters(), lr=self.config.learning_rate)
+        elif optimizer_name == 'SGD':
+            optimizer = torch.optim.SGD(self.net.parameters(), lr=self.config.learning_rate, momentum=0.9,
+                                        weight_decay=5e-4)
+        else:
+            optimizer = torch.optim.AdamW(self.net.parameters(), weight_decay=0.0001, lr=self.config.learning_rate)
+        return optimizer
 
     def train(self):
         raise NotImplementedError

@@ -97,12 +97,12 @@ class SetCriterion(nn.Module):
         empty_weight[-1] = self.eos_coef
         self.register_buffer('empty_weight', empty_weight)
 
-    def loss_classes(self, outputs, targets, indices, num_segments, log=True):
+    def loss_classes(self, outputs, targets, indices, num_segments):
         """Classification loss (NLL)
         targets dicts must contain the key "classes" containing a tensor of dim [nb_target_segments]
         """
         assert 'classes' in outputs
-        pred_classes = outputs['classes']
+        pred_classes = outputs['classes'].softmax(-1)
 
         idx = self._get_src_permutation_idx(indices) # batch_idx, src_idx
 
@@ -114,24 +114,10 @@ class SetCriterion(nn.Module):
         target_classes[idx] = target_classes_o
 
         loss_ce = F.cross_entropy(pred_classes.transpose(1, 2), target_classes, self.empty_weight)
-        # print('---------------')
-        # print('indices')
-        # print(indices)
-        # print('idx')
-        # print(idx)
-        # print('target_classes_o')
-        # print(target_classes_o)
-        # print('target_classes')
-        # print( target_classes)
-        # print(loss_ce/len(target_classes_o))
-        # print('---------------')
-
         losses = {'loss_ce': loss_ce/len(target_classes_o)}
-
-        if log:#????是否需要保留？
-            # TODO this should probably be a separate loss, not hacked in this one here
-            losses['class_error'] = 100 - accuracy(pred_classes[idx], target_classes_o)[0]
+        losses['class_error'] = 100 - accuracy(pred_classes[idx], target_classes_o)[0]
         return losses
+
 
     @torch.no_grad()
     def loss_cardinality(self, outputs, targets, indices, num_segments):
@@ -147,6 +133,8 @@ class SetCriterion(nn.Module):
         losses = {'cardinality_error': card_err}
         return losses
 
+
+
     def loss_segments(self, outputs, targets, indices, num_segments):
         """Compute the losses related to the bounding segments, the L1 regression loss and the DIoU loss
            targets dicts must contain the key "segments" containing a tensor of dim [100, 2]
@@ -157,7 +145,7 @@ class SetCriterion(nn.Module):
         pred_segments = outputs['segments'][idx]
         target_segments = torch.cat([t['segments'][i] for t, (_, i) in zip(targets, indices)], dim=0)
 
-        loss_segments = F.l1_loss(pred_segments, pred_segments, reduction='none')
+        loss_segments = F.l1_loss(pred_segments, target_segments, reduction='none')
 
         losses = {}
         losses['loss_segments'] = loss_segments.sum() / num_segments
@@ -182,8 +170,8 @@ class SetCriterion(nn.Module):
     def get_loss(self, loss, outputs, targets, indices, num_segments, **kwargs):
         loss_map = {
             'classes': self.loss_classes,
-            'cardinality': self.loss_cardinality,
             'segments': self.loss_segments,
+            'cardinality': self.loss_cardinality,
             # 'masks': self.loss_masks
         }
         assert loss in loss_map, f'do you really want to compute {loss} loss?'
@@ -228,5 +216,4 @@ class SetCriterion(nn.Module):
                     l_dict = self.get_loss(loss, aux_outputs, targets, indices, num_segments, **kwargs)
                     l_dict = {k + f'_{i}': v for k, v in l_dict.items()}
                     losses.update(l_dict)
-
         return losses
