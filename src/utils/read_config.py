@@ -80,7 +80,7 @@ class Config(object):
         saver_info = config['saver']
         self.exp_dir = saver_info['exp_dir']
         self.results_dir = saver_info['results_dir']
-        self.log_dir = os.path.join(saver_info['log_dir'], 'logs{}'.format(timestamp))
+        self.log_dir = os.path.join(saver_info['log_dir'], 'logs{}-{}'.format(timestamp, self.dataset_name))
 
         # Train
 

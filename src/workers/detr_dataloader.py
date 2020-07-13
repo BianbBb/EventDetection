@@ -97,7 +97,7 @@ def getFullData(config, video_dict, classes_index, last_channel=False):
 class MyDataSet(Dataset):
     def __init__(self, config, video_dict):
         self.config = config
-        # video_dict = dict(list(video_dict.items())[:600])  # TODO：comment out this line
+        video_dict = dict(list(video_dict.items())[:600])  # TODO：comment out this line
         self.video_dict = video_dict
 
         with open(config.index_file, 'r') as f:

@@ -1,5 +1,5 @@
 dataset:
-  dataset_name: activitynet #  activitynet  thumos   tianchi
+  dataset_name: tianchi #  activitynet  thumos   tianchi
 
   tianchi:
     num_classes: 53
@@ -46,7 +46,7 @@ training:
   resume: False  # if load pre-trained model
   learning_rate: 0.0001
   epoch_num: 200
-  batch_size: 16
+  batch_size: 3
 
 model:
   model_name: DETR  # DBG or DETR

@@ -12,10 +12,10 @@ from .position_encoding import PositionEmbedding
 
 class DETR(nn.Module):
     """ This is the DETR module that performs object detection """
-    def __init__(self, position_encoding, transformer, num_classes, num_queries, aux_loss=False, input_c=400):
+    def __init__(self, position_encoding, transformer, num_classes, num_queries, aux_loss=False, input_c=100):
         super(DETR, self).__init__()
         hidden_dim = transformer.d_model
-        self.input_proj = nn.Conv1d(100, hidden_dim, kernel_size=1)  # pre-process layer
+        self.input_proj = nn.Conv1d(input_c, hidden_dim, kernel_size=1)  # pre-process layer
         self.position_encoding = position_encoding  # position encoding layer, get encoding added to input
         self.transformer = transformer  # transformer layer
         self.query_embed = nn.Embedding(num_queries, hidden_dim)  # object query
@@ -83,7 +83,7 @@ class MLP(nn.Module):
 
 
 def build_detr(config):
-    position_encoding = PositionEmbedding(config.hidden_dim, 400)
+    position_encoding = PositionEmbedding(config.hidden_dim, config.feature_dim)
     transformer = build_transformer(config)
     model = DETR(
         position_encoding,
@@ -91,6 +91,6 @@ def build_detr(config):
         num_classes=config.num_classes,
         num_queries=config.num_queries,
         aux_loss=False,
-        input_c=config.feature_dim
+        input_c=100
     )
     return model
