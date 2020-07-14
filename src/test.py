@@ -4,97 +4,44 @@ import numpy as np
 import tqdm
 import torch
 import torch.nn as nn
+from torch.utils.data import DataLoader
+import json
 
 from models.model import network
-from utils.utils import gen_mask, getBatchListTest, getProposalDataTest, save_proposals_result, getDatasetDict
+from utils.utils import getBatchListTest, getProposalDataTest, save_proposals_result
 from utils.read_config import Config
+from workers.detr_dataloader import MyDataSet, getDatasetDict
+from workers.detr_tester import ADTR_tester
 
 torch.backends.cudnn.enabled = False
 config = Config()
-save_dir = config.test_csv_save_dir
-if not os.path.exists(save_dir):
-    os.makedirs(save_dir)
-pth_load_dir = config.test_pth_load_dir
 
 
-tscale = config.tscale
-feature_dim = config.feature_dim
-batch_size = config.test_batch_size
-
-mask = gen_mask(tscale)
-mask = np.expand_dims(np.expand_dims(mask, 0), 1)
-mask = torch.from_numpy(mask).float().requires_grad_(False).cuda()
-
-"""
-This test script is used for evaluating our algorithm 
-This script saves all proposals results (csv format)
-Then, use post_processing.py to generate the final result
-Finally, use eval.py to evaluate the final result
-You can got about 68% AUC
-"""
-
-""" 
-Testing procedure
-1.Get Test data
-2.Define DBG model
-3.Load model weights 
-4.Run DBG model
-5.Save proposal results (csv format)
-"""
+def save(result, file):
+    print('save to :{}'.format(file))
+    with open(file, 'w') as f:
+        json.dump(result, f)
 
 
-def test():
-    with torch.no_grad():
-        """ setup DBG model and load weights """
-        net = DBG_reduce_dim()
-        state_dict = torch.load(os.path.join(pth_load_dir, 'checkpoint_best.pth'))
-        net.load_state_dict(state_dict)
-        net = nn.DataParallel(net, device_ids=[0]).cuda()
-        net.eval()
-
-        train_dict, val_dict, test_dict = getDatasetDict(config, config.video_info_file)
-
-        if config.mode == 'validation':
-            test_dict = val_dict
-        batch_video_list = getBatchListTest(test_dict, batch_size)
-
-        batch_result_xmin = []
-        batch_result_xmax = []
-        batch_result_iou = []
-        batch_result_pstart = []
-        batch_result_pend = []
-
-        print('Runing DBG model ...')
-        print("testing on {} dataset".format(config.mode))
-        for idx in tqdm.tqdm(range(len(batch_video_list))):
-            batch_anchor_xmin, batch_anchor_xmax, batch_anchor_feature = getProposalDataTest(config, batch_video_list[idx])
-            in_feature = torch.from_numpy(batch_anchor_feature).float().cuda().permute(0, 2, 1)
-            output_dict = net(in_feature)
-            out_iou = output_dict['iou']
-            out_start = output_dict['prop_start']
-            out_end = output_dict['prop_end']
-
-            # fusion starting and ending map score
-            out_start = out_start * mask
-            out_end = out_end * mask
-            out_start = torch.sum(out_start, 3) / torch.sum(mask, 3)
-            out_end = torch.sum(out_end, 2) / torch.sum(mask, 2)
-
-            batch_result_xmin.append(batch_anchor_xmin)
-            batch_result_xmax.append(batch_anchor_xmax)
-            batch_result_iou.append(out_iou[:, 0].cpu().detach().numpy())
-            batch_result_pstart.append(out_start[:, 0].cpu().detach().numpy())
-            batch_result_pend.append(out_end[:, 0].cpu().detach().numpy())
-
-        save_proposals_result(batch_video_list,
-                              batch_result_xmin,
-                              batch_result_xmax,
-                              batch_result_iou,
-                              batch_result_pstart,
-                              batch_result_pend,
-                              tscale,
-                              save_dir)
+def test(config):
+    if not torch.cuda.is_available():
+        print('Only test on CPU.')
 
 
-if __name__ == "__main__":
-    test()
+    def collate_fn(batch):
+        batch = list(zip(*batch))
+        return tuple(batch)
+
+    # dataset
+    train_dict, val_dict, test_dict = getDatasetDict(config.video_info_file, config.video_filter)
+    dataset_test = MyDataSet(config, test_dict)
+    test_dl = DataLoader(dataset_test, config.batch_size, collate_fn=collate_fn, shuffle=False)
+
+    model = network(config)
+    tester = ADTR_tester(config, model, test_dl)
+    result = tester.run()
+    output_file = config.post_json_save_path
+    save(result, output_file)
+
+if __name__ == '__main__':
+    test(config)

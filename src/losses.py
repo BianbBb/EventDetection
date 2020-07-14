@@ -30,7 +30,7 @@ def binary_logistic_loss(gt_scores, pred_anchors):
     loss = -1.0 * torch.mean(loss)
     return loss
 
-
+'''
 def IoU_loss(gt_iou, pred_iou, mask):  #todo :
     """
     Calculate IoU loss
@@ -70,6 +70,8 @@ def IoU_loss(gt_iou, pred_iou, mask):  #todo :
     iou_loss = torch.sum(iou_loss * iou_weights) / torch.max(torch.sum(iou_weights),
                                                              torch.Tensor([1.0]).cuda())
     return iou_loss
+'''
+
 
 
 class SetCriterion(nn.Module):

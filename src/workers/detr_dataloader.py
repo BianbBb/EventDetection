@@ -35,7 +35,7 @@ def getDatasetDict(video_info_file, video_filter=False):
     return train_dict, val_dict, test_dict
 
 
-def getFullData(config, video_dict, classes_index, last_channel=False):
+def getFullData(config, video_dict, classes_index, last_channel=False, is_test=False):
     data_dir = config.feat_dir
     video_list = list(video_dict.keys())
 
@@ -56,23 +56,24 @@ def getFullData(config, video_dict, classes_index, last_channel=False):
         video_starts = []
         video_ends = []
         gt_lens = []
-        for j in range(len(video_infos)):  # video中的所有segment信息
-            tmp_info = video_infos[j]
-            tmp_label = tmp_info["label"]
-            tmp_start = tmp_info["segment"][0]
-            tmp_end = tmp_info["segment"][1]
-            tmp_start = max(min(1, tmp_start / video_second), 0)
-            tmp_end = max(min(1, tmp_end / video_second), 0)
-            gt_lens.append(tmp_end - tmp_start)
 
-            video_labels.append(classes_index[tmp_label])
-            video_starts.append(tmp_start)
-            video_ends.append(tmp_end)
+        if not is_test:
+            for j in range(len(video_infos)):  # video中的所有segment信息
+                tmp_info = video_infos[j]
+                tmp_label = tmp_info["label"]
+                tmp_start = tmp_info["segment"][0]
+                tmp_end = tmp_info["segment"][1]
+                tmp_start = max(min(1, tmp_start / video_second), 0)
+                tmp_end = max(min(1, tmp_end / video_second), 0)
+                gt_lens.append(tmp_end - tmp_start)
 
-        # calculate gt average length
-        mean_len = 2
-        if len(gt_lens):
-            mean_len = np.mean(gt_lens)
+                video_labels.append(classes_index[tmp_label])
+                video_starts.append(tmp_start)
+                video_ends.append(tmp_end)
+
+        batch_label_action.append(video_labels)
+        batch_label_start.append(video_starts)
+        batch_label_end.append(video_ends)
 
         video_feat = load_feature(config, data_dir, video_name)
 
@@ -80,15 +81,12 @@ def getFullData(config, video_dict, classes_index, last_channel=False):
             video_feat = np.transpose(video_feat, [1, 0])
 
         batch_anchor_feature.append(video_feat)
-        batch_label_action.append(video_labels)
-        batch_label_start.append(video_starts)
-        batch_label_end.append(video_ends)
 
     dataDict = {
         "gt_action": batch_label_action,
         "gt_start": batch_label_start,
         "gt_end": batch_label_end,
-        "feature": batch_anchor_feature,  ## feature
+        "feature": batch_anchor_feature,
     }
 
     return dataDict

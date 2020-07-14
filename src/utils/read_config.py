@@ -80,7 +80,7 @@ class Config(object):
         saver_info = config['saver']
         self.exp_dir = saver_info['exp_dir']
         self.results_dir = saver_info['results_dir']
-        self.log_dir = os.path.join(saver_info['log_dir'], 'logs{}-{}'.format(timestamp, self.dataset_name))
+        self.log_dir = os.path.join(saver_info['log_dir'], '{}-{}'.format(timestamp, self.dataset_name))
 
         # Train
 
@@ -88,7 +88,7 @@ class Config(object):
         self.train_pth_save_dir = os.path.join(self.exp_dir, train_pth_save_dir)
 
         # Test
-        self.test_pth_load_dir = os.path.join(self.exp_dir, self.pth_name)
+        self.test_pth_load_dir = os.path.join(self.log_dir, self.pth_name)
         self.test_csv_save_dir = os.path.join(self.results_dir, '{}-{}'.format(self.pth_name, self.mode))
 
         # Post Processing

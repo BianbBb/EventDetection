@@ -1,5 +1,5 @@
 dataset:
-  dataset_name: tianchi #  activitynet  thumos   tianchi
+  dataset_name: activitynet #  activitynet  thumos   tianchi
 
   tianchi:
     num_classes: 53
@@ -37,7 +37,7 @@ dataset:
     feature_dim: 400
 
 saver:
-  exp_dir: ../exp
+  exp_dir: ../exp # 已被log_dir 替代
   results_dir: ../results/
   log_dir: ../logs
 
@@ -70,4 +70,4 @@ model:
 testing:
   mode: validation # validation or testing
   test_batch_size: 12
-  pth_name: DBG_reduce_dim-0627-1512-tianchi # model weights
+  pth_name: 0712-1737-activitynet # model weights
