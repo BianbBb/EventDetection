@@ -125,7 +125,7 @@ def sub_processor(lock, pid, video_list):
             tmp_proposal["score"] = df.score.values[j]
             tmp_proposal["segment"] = [max(0, df.xmin.values[j]) * video_duration,
                                        min(1, df.xmax.values[j]) * video_duration]
-            tmp_proposal["label"] = "行走"  # TODO:label
+            tmp_proposal["label"] = "行走"
             # tmp_proposal["label"] = "Fun sliding down"
             proposal_list.append(tmp_proposal)
         result_dict[video_name] = proposal_list

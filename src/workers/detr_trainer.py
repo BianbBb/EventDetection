@@ -5,7 +5,6 @@ from runx.logx import logx
 
 from .base_trainer import BaseTrainer
 from models.detr.matcher import build_matcher
-from models.detr.detr import PostProcess
 from losses import SetCriterion
 
 
@@ -27,13 +26,11 @@ class DetrTrainer(BaseTrainer):
         self.criterion = self.init_criterion()
         self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=100, gamma=0.1)
         self.max_norm = 0.1
-        # post
-        self.postprocessors = {'bbox': PostProcess()}
 
     def init_criterion(self):
         weight_dict = {'loss_ce': 1, 'loss_segments': 5, 'loss_diou': 2}
-        # 根据config进行设置
-        # TODO this is a hack
+        # TODO:根据config进行设置
+        # this is a hack
         if self.aux_loss:
             aux_weight_dict = {}
             for i in range(self.config.dec_layers - 1):
@@ -71,7 +68,7 @@ class DetrTrainer(BaseTrainer):
 
         epoch_loss_dict = {'total': 0, 'loss_ce': 0, 'loss_segments': 0, 'loss_diou': 0}
         epoch_time = time.time()
-        for n_iter, (samples, targets) in enumerate(data_loader):
+        for n_iter, (samples, targets,_) in enumerate(data_loader):
             # data
             samples = torch.cat([i.unsqueeze(0) for i in samples], dim=0)
             samples = samples.to(self.device)
@@ -79,7 +76,7 @@ class DetrTrainer(BaseTrainer):
             targets = [{k: torch.FloatTensor(v).to(self.device) for k, v in t.items()} for t in targets]
 
             # forward
-            outputs = self.net(samples)
+            outputs = self.net(samples) # samples：（b,c,T）
 
             # loss
             loss_dict = self.criterion(outputs, targets)
@@ -110,7 +107,6 @@ class DetrTrainer(BaseTrainer):
             # 每隔N_step打印一次
             N_step = 50
             if (n_iter + 1) % N_step == 0:
-                # TODO: 累积ce、l1、diou loss step的平均时间
                 print('| Epoch {:<3d} Step {:<5d} '
                       '| Total Loss: {:.4f} '
                       '| CE Loss: {:.4f} '

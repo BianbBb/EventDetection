@@ -18,9 +18,6 @@ def read_config(config_file="../../config/default.yaml"):
         cfg = yaml.safe_load(f.read())
     return cfg
 
-
-# TODO：修改 self.XXX 与 default.yaml 的名称相同
-# train，test，post_processing, eval 需要的路径与设置
 class Config(object):
     def __init__(self):
 

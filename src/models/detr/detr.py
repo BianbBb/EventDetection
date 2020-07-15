@@ -26,6 +26,7 @@ class DETR(nn.Module):
     def forward(self, x):
         x = x.transpose(1, 2)
         input_tensor = self.input_proj(x)
+        # TODO:position_encoding 修改
         pos_embed = self.position_encoding(input_tensor) - input_tensor
         hs = self.transformer(input_tensor, None, self.query_embed.weight, pos_embed)[0]
         outputs_class = self.class_embed(hs)

@@ -43,6 +43,8 @@ def getFullData(config, video_dict, classes_index, last_channel=False, is_test=F
     batch_label_action = []
     batch_label_start = []
     batch_label_end = []
+    batch_video_name = []
+    batch_video_duration = []
 
     for i in range(len(video_list)):  # TODO:tqdm 每一个video
         if i % 100 == 0:
@@ -51,6 +53,8 @@ def getFullData(config, video_dict, classes_index, last_channel=False, is_test=F
         video_info = video_dict[video_name]
         video_second = video_info["duration_second"]
         video_infos = video_info["annotations"]
+        batch_video_name.append(video_name)
+        batch_video_duration.append(video_second)
 
         video_labels = []
         video_starts = []
@@ -87,6 +91,8 @@ def getFullData(config, video_dict, classes_index, last_channel=False, is_test=F
         "gt_start": batch_label_start,
         "gt_end": batch_label_end,
         "feature": batch_anchor_feature,
+        "video_name": batch_video_name,
+        "video_duration": batch_video_duration
     }
 
     return dataDict
@@ -95,7 +101,7 @@ def getFullData(config, video_dict, classes_index, last_channel=False, is_test=F
 class MyDataSet(Dataset):
     def __init__(self, config, video_dict):
         self.config = config
-        video_dict = dict(list(video_dict.items())[:600])  # TODO：comment out this line
+        # video_dict = dict(list(video_dict.items())[:600])  # TODO：comment out this line
         self.video_dict = video_dict
 
         with open(config.index_file, 'r') as f:
@@ -113,16 +119,20 @@ class MyDataSet(Dataset):
         if torch.is_tensor(idx):
             idx = idx.tolist()
         data_dict = self.data_dict
+
+        feature = torch.from_numpy(data_dict['feature'][idx]).type(torch.FloatTensor)
+
         gt_action = data_dict['gt_action'][idx]
         gt_start = data_dict['gt_start'][idx]
         gt_end = data_dict['gt_end'][idx]
-        feature = torch.from_numpy(data_dict['feature'][idx]).type(torch.FloatTensor)
-
-        tmp_segment = []
-        for i, j in zip(gt_start, gt_end):
-            tmp_segment.append([i, j])
-
-        gt_segment = xy2cl(torch.Tensor(tmp_segment)).numpy().tolist()
-
+        tmp_segment = list(([i,j] for i, j in zip(gt_start, gt_end)))
+        # for i, j in zip(gt_start, gt_end):
+        #     tmp_segment.append([i, j])
+        gt_segment = xy2cl(torch.Tensor(tmp_segment)).numpy().tolist() #TODO:xy2cl直接对列表操作
         target = {'classes': gt_action, 'segments': gt_segment}
-        return feature, target
+
+        video_name = data_dict['video_name'][idx]
+        video_duration = data_dict['video_duration'][idx]
+        infos = {'name':video_name, 'duration':video_duration }
+
+        return feature, target,infos
