@@ -135,7 +135,7 @@ class ANETproposal(object):
 
         if self.verbose:
             print('[RESULTS] Performance on ActivityNet proposal task.')
-            print('\tArea Under the AR vs AN curve: {}%'.format(
+            print('Area Under the AR vs AN curve: {}%'.format(
                 100.*float(area_under_curve)/proposals_per_video[-1]))
 
         self.recall = recall

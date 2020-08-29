@@ -28,6 +28,7 @@ def load_feature(config, folder, file):
     else:
         raise TypeError
     return video_feat
+    # return np.ones([10,10])
 
 
 def get_filter_video_names(video_info_file, gt_len_thres=0.98):

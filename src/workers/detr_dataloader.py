@@ -4,6 +4,7 @@ from utils.utils import get_filter_video_names, load_json, load_feature
 import numpy as np
 import json
 import sys
+from tqdm import tqdm
 
 sys.path.append("../")
 from utils.proposal_ops import xy2cl
@@ -35,8 +36,12 @@ def getDatasetDict(video_info_file, video_filter=False):
     return train_dict, val_dict, test_dict
 
 
-def getFullData(config, video_dict, classes_index, last_channel=False, is_test=False):
-    data_dir = config.feat_dir
+def getFullData(config, video_dict, classes_index,flag='train',last_channel=False, ):
+    if flag == 'test':
+        data_dir = config.test_dir
+    else:
+        data_dir = config.feat_dir
+
     video_list = list(video_dict.keys())
 
     batch_anchor_feature = []
@@ -46,9 +51,7 @@ def getFullData(config, video_dict, classes_index, last_channel=False, is_test=F
     batch_video_name = []
     batch_video_duration = []
 
-    for i in range(len(video_list)):  # TODO:tqdm 每一个video
-        if i % 100 == 0:
-            print("%d / %d videos are loaded" % (i, len(video_list)))
+    for i in tqdm(range(len(video_list))):
         video_name = video_list[i]
         video_info = video_dict[video_name]
         video_second = video_info["duration_second"]
@@ -61,7 +64,7 @@ def getFullData(config, video_dict, classes_index, last_channel=False, is_test=F
         video_ends = []
         gt_lens = []
 
-        if not is_test:
+        if flag != 'test':
             for j in range(len(video_infos)):  # video中的所有segment信息
                 tmp_info = video_infos[j]
                 tmp_label = tmp_info["label"]
@@ -99,17 +102,17 @@ def getFullData(config, video_dict, classes_index, last_channel=False, is_test=F
 
 
 class MyDataSet(Dataset):
-    def __init__(self, config, video_dict):
+    def __init__(self, config, video_dict, flag = 'train'):
         self.config = config
-        # video_dict = dict(list(video_dict.items())[:600])  # TODO：comment out this line
-        self.video_dict = video_dict
-
+        self.flag = flag
         with open(config.index_file, 'r') as f:
             self.classes_index = json.load(f)
 
+        # TODO：comment out this line
+        # video_dict = dict(list(video_dict.items())[:51])
+
         self.video_num = len(video_dict.keys())
-        # load raw data
-        data_dict = getFullData(config, video_dict, self.classes_index)
+        data_dict = getFullData(config, video_dict, self.classes_index,flag=flag)
         self.data_dict = data_dict
 
     def __len__(self):
@@ -122,17 +125,20 @@ class MyDataSet(Dataset):
 
         feature = torch.from_numpy(data_dict['feature'][idx]).type(torch.FloatTensor)
 
-        gt_action = data_dict['gt_action'][idx]
-        gt_start = data_dict['gt_start'][idx]
-        gt_end = data_dict['gt_end'][idx]
-        tmp_segment = list(([i,j] for i, j in zip(gt_start, gt_end)))
-        # for i, j in zip(gt_start, gt_end):
-        #     tmp_segment.append([i, j])
-        gt_segment = xy2cl(torch.Tensor(tmp_segment)).numpy().tolist() #TODO:xy2cl直接对列表操作
-        target = {'classes': gt_action, 'segments': gt_segment}
+        if self.flag != 'test':
+            gt_action = data_dict['gt_action'][idx]
+            gt_start = data_dict['gt_start'][idx]
+            gt_end = data_dict['gt_end'][idx]
+            tmp_segment = list(([i,j] for i, j in zip(gt_start, gt_end)))
+            # for i, j in zip(gt_start, gt_end):
+            #     tmp_segment.append([i, j])
+            gt_segment = xy2cl(torch.Tensor(tmp_segment)).numpy().tolist() #TODO:xy2cl直接对列表操作
+            target = {'classes': gt_action, 'segments': gt_segment}
+        else:
+            target = {}
 
         video_name = data_dict['video_name'][idx]
         video_duration = data_dict['video_duration'][idx]
-        infos = {'name':video_name, 'duration':video_duration }
+        infos = {'video_name':video_name, 'video_duration':video_duration }
 
-        return feature, target,infos
+        return feature, target, infos

@@ -38,6 +38,7 @@ def distance_iou(seg1, seg2):  # 值域为[-1,1]
 
     center_distance = torch.abs(seg1[:, None, 0] + seg1[:, None, 1] - seg2[:, 0] - seg2[:, 1]) / 2 # 中心距离
     diou = (inter - center_distance) / union
+    # print(diou.min(), diou.max())
     return diou
 
 
@@ -53,11 +54,16 @@ def cl2xy(x):
 
 
 def xy2cl(x):
+    """
+
+    :param x:
+    :return: c is the segment center, l is radius
+    """
     y = torch.zeros_like(x)
     a = x[..., 0]
     b = x[..., 1]
     y[..., 0] = (a+b) / 2
-    y[..., 1] = b-a
+    y[..., 1] = (b-a) / 2
     assert y.size() == x.size()
     return y
 

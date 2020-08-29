@@ -1,4 +1,5 @@
 import time
+import os
 import torch
 import numpy as np
 from runx.logx import logx
@@ -21,15 +22,18 @@ class DetrTrainer(BaseTrainer):
         self.logx = logx
         self.logx.initialize(logdir=config.log_dir, coolname=True, tensorboard=True)
         # hyper param
+        self.save_config(config.config, os.path.join(config.log_dir, 'hyp.yaml'))
         self.epoch = 0
         self.loss_map = ['classes', 'cardinality', 'segments', ]
         self.criterion = self.init_criterion()
-        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=100, gamma=0.1)
+        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode="min", factor=0.1, patience=20, verbose=True, threshold=0.0001, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08)
         self.max_norm = 0.1
 
+        # self.warm_up = [1, 10, 100, 100, 100,100,100,10,10,10,10,10,1]
+        self.warm_up = [1]
+
     def init_criterion(self):
-        weight_dict = {'loss_ce': 1, 'loss_segments': 5, 'loss_diou': 2}
-        # TODO:根据config进行设置
+        weight_dict = {'loss_class': self.config.set_cost_classes, 'loss_segments': self.config.set_cost_segments, 'loss_diou': self.config.set_cost_diou}
         # this is a hack
         if self.aux_loss:
             aux_weight_dict = {}
@@ -38,7 +42,7 @@ class DetrTrainer(BaseTrainer):
             weight_dict.update(aux_weight_dict)
         matcher = build_matcher(self.config)
         criterion = SetCriterion(self.config.num_classes, matcher=matcher, weight_dict=weight_dict,
-                                 eos_coef=0.1, losses=self.loss_map)
+                                 eos_coef=self.config.eos_coef, losses=self.loss_map)
         criterion.to(self.device)
         return criterion
 
@@ -48,9 +52,9 @@ class DetrTrainer(BaseTrainer):
         for epoch in range(self.EPOCH):
             self.epoch = epoch
             torch.cuda.empty_cache()
-            self.logx.msg('| --------------  Train  Epoch : {:<3d} -------------- |'.format(epoch))
+            self.logx.msg('| ------------  Train  Epoch : {:<3d} ------------ |'.format(epoch))
             self.train()
-            self.logx.msg('| --------------   Val   Epoch : {:<3d} -------------- |'.format(epoch))
+            self.logx.msg('| ------------   Val   Epoch : {:<3d} ------------ |'.format(epoch))
             self.val()
 
     def train(self):
@@ -66,8 +70,12 @@ class DetrTrainer(BaseTrainer):
         else:
             self.net.eval()
 
-        epoch_loss_dict = {'total': 0, 'loss_ce': 0, 'loss_segments': 0, 'loss_diou': 0}
+        epoch_loss_dict = {'total': 0, 'loss_class': 0, 'loss_segments': 0, 'loss_diou': 0}
         epoch_time = time.time()
+
+        warm_up = self.warm_up[self.epoch] if self.epoch < len(self.warm_up) else 1
+        warm_up = torch.tensor(warm_up, requires_grad=False).to(self.device)
+
         for n_iter, (samples, targets,_) in enumerate(data_loader):
             # data
             samples = torch.cat([i.unsqueeze(0) for i in samples], dim=0)
@@ -76,12 +84,13 @@ class DetrTrainer(BaseTrainer):
             targets = [{k: torch.FloatTensor(v).to(self.device) for k, v in t.items()} for t in targets]
 
             # forward
+            # print(samples.size())
             outputs = self.net(samples) # samples：（b,c,T）
 
             # loss
             loss_dict = self.criterion(outputs, targets)
             weight_dict = self.criterion.weight_dict
-            step_loss_dict = {'total': 0, 'loss_ce': 0, 'loss_segments': 0, 'loss_diou': 0}  # N_step个step的loss
+            step_loss_dict = {'total': 0, 'loss_class': 0, 'loss_segments': 0, 'loss_diou': 0}  # N_step个step的loss
             # step total loss
             step_loss = sum(loss_dict[k] * weight_dict[k] for k in loss_dict.keys() if k in weight_dict)
 
@@ -95,30 +104,29 @@ class DetrTrainer(BaseTrainer):
             for k in epoch_loss_dict.keys():
                 epoch_loss_dict[k] += step_loss_dict[k]
 
+            step_loss = warm_up * step_loss
+
             if training:
                 self.optimizer.zero_grad()
-                # self.scheduler.step()
                 step_loss.backward()
-                # TODO: max_norm 的作用？
-                # if self.max_norm > 0:
-                #     torch.nn.utils.clip_grad_norm_(self.net.parameters(), self.max_norm)
                 self.optimizer.step()
+                self.scheduler.step(self.VAL_LOSS)
 
             # 每隔N_step打印一次
-            N_step = 50
+            N_step = 200
             if (n_iter + 1) % N_step == 0:
                 print('| Epoch {:<3d} Step {:<5d} '
-                      '| Total Loss: {:.4f} '
-                      '| CE Loss: {:.4f} '
+                      '| Total Loss: {:5.4f} '
+                      '| Class Loss: {:.4f} '
                       '| L1 Loss: {:.4f} '
                       '| DIoU Loss: {:.4f} |'
-                      .format(self.epoch, n_iter + 1, step_loss_dict['total'], step_loss_dict['loss_ce'],
+                      .format(self.epoch, n_iter + 1, step_loss_dict['total'], step_loss_dict['loss_class'],
                               step_loss_dict['loss_segments'], step_loss_dict['loss_diou']
                               ))
 
         metrics = {
             'total_loss': epoch_loss_dict['total'] / (n_iter+1),
-            'ce_loss': epoch_loss_dict['loss_ce'] / (n_iter+1),
+            'ce_loss': epoch_loss_dict['loss_class'] / (n_iter+1),
             'segments_loss': epoch_loss_dict['loss_segments'] / (n_iter+1),
             'iou_loss': epoch_loss_dict['loss_diou'] / (n_iter+1)
         }
@@ -128,7 +136,7 @@ class DetrTrainer(BaseTrainer):
             self.logx.metric('val', metrics, self.epoch)
             self.VAL_LOSS = epoch_loss_dict['total'] / (n_iter + 1)
 
-        self.logx.msg('| Epoch {:<14d} | Total Loss: {:.4f} | Time: {:<8.0f}s | '
+        self.logx.msg('| Epoch {:<14d} | Total Loss: {:5.4f} | Time: {:<11.0f}s | '
                       .format(self.epoch, epoch_loss_dict['total'] / (n_iter+1), (time.time() - epoch_time)))
 
         save_dict = {

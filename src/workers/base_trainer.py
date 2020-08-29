@@ -2,7 +2,7 @@ import random
 
 import torch
 import numpy as np
-
+import yaml
 
 class BaseTrainer(object):
     def __init__(self, config, net, optimizer='Adam'):
@@ -14,7 +14,7 @@ class BaseTrainer(object):
         self.EPOCH = self.config.epoch_num
         self.BATCH_SIZE = self.config.batch_size
         # checkpoint
-        self.exp_path = self.config.train_pth_save_dir
+        self.resume_path = self.config.train_pth_load_dir
         self.net.to(self.device)
 
         if self.config.resume:  # 从文件中读取模型参数
@@ -33,7 +33,7 @@ class BaseTrainer(object):
 
     def load_weight(self):
         try:
-            self.net.load_state_dict(torch.load(self.exp_path))
+            self.net.load_state_dict(torch.load(self.resume_path)["state_dict"])
             print('Net Parameters Loaded Successfully!')
         except FileNotFoundError:
             print('Can not find feature.pkl !')
@@ -45,8 +45,13 @@ class BaseTrainer(object):
             optimizer = torch.optim.SGD(self.net.parameters(), lr=self.config.learning_rate, momentum=0.9,
                                         weight_decay=5e-4)
         else:
-            optimizer = torch.optim.AdamW(self.net.parameters(), weight_decay=0.0001, lr=self.config.learning_rate)
+            optimizer = torch.optim.AdamW(self.net.parameters(), weight_decay=1e-4, lr=self.config.learning_rate)
         return optimizer
+
+    def save_config(self, data, filename):
+        with open(filename, 'w') as f:
+            yaml.dump(data, f, sort_keys=False)
+
 
     def train(self):
         raise NotImplementedError

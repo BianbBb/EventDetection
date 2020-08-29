@@ -17,7 +17,7 @@ from torch import nn, Tensor
 
 class Transformer(nn.Module):
 
-    def __init__(self, d_model=512, nhead=8, num_encoder_layers=6,
+    def __init__(self, d_model=256, nhead=8, num_encoder_layers=6,
                  num_decoder_layers=6, dim_feedforward=2048, dropout=0.1,
                  activation="relu", normalize_before=False,
                  return_intermediate_dec=False):
@@ -45,16 +45,20 @@ class Transformer(nn.Module):
                 nn.init.xavier_uniform_(p)
 
     def forward(self, src, mask, query_embed, pos_embed):
-        bs, c, l = src.shape
-        src = src.permute(2, 0, 1)
-        pos_embed = pos_embed.permute(2, 0, 1)
-        query_embed = query_embed.unsqueeze(1).repeat(1, bs, 1)
+        bs, c, l = src.shape  # 2, 256, 100
+        src = src.permute(2, 0, 1)   # t, b, c   100,2,256
+        pos_embed = pos_embed.permute(2, 0, 1) if pos_embed is not None else None # t, b, c   100,2,256
+        query_embed = query_embed.unsqueeze(1).repeat(1, bs, 1) # 10,256 -> 10,2,256
 
-        tgt = torch.zeros_like(query_embed)
-        memory = self.encoder(src, src_key_padding_mask=mask, pos=pos_embed)
+        tgt = torch.zeros_like(query_embed) # 10,2,256
+        memory = self.encoder(src, src_key_padding_mask=mask, pos=pos_embed) # 100,2,256
+        # memory为 encoder最后一层输出的 src
         hs = self.decoder(tgt, memory, memory_key_padding_mask=mask,
-                          pos=pos_embed, query_pos=query_embed)
+                          pos=pos_embed, query_pos=query_embed)   # 6,10,2,256
         return hs.transpose(1, 2), memory.permute(1, 2, 0).view(bs, c, l)
+        # hs  6,10,2,256 -> 6,2,10,256      decoder_layer_num, batch, query_num, feature_dim
+
+
 
 
 class TransformerEncoder(nn.Module):
@@ -111,7 +115,7 @@ class TransformerDecoder(nn.Module):
 
         if self.norm is not None:
             output = self.norm(output)
-            if self.return_intermediate:
+            if self.return_intermediate: # decoder 最后一层输出进行norm
                 intermediate.pop()
                 intermediate.append(output)
 
@@ -162,10 +166,12 @@ class TransformerEncoderLayer(nn.Module):
                     src_mask: Optional[Tensor] = None,
                     src_key_padding_mask: Optional[Tensor] = None,
                     pos: Optional[Tensor] = None):
-        src2 = self.norm1(src)
+        src2 = self.norm1(src) # 设置norm_before时比论文中多一个norm
         q = k = self.with_pos_embed(src2, pos)
         src2 = self.self_attn(q, k, value=src2, attn_mask=src_mask,
                               key_padding_mask=src_key_padding_mask)[0]
+
+        # src2 :100 ,2, 256   t,b,c
         src = src + self.dropout1(src2)
         src2 = self.norm2(src)
         src2 = self.linear2(self.dropout(self.activation(self.linear1(src2))))
@@ -242,22 +248,16 @@ class TransformerDecoderLayer(nn.Module):
                               key_padding_mask=tgt_key_padding_mask)[0]
         tgt = tgt + self.dropout1(tgt2)
         tgt2 = self.norm2(tgt)
-
-        # print('-------')
-        # print(tgt2.size())
-        # print('-------')
-
-
-
         tgt2 = self.multihead_attn(query=self.with_pos_embed(tgt2, query_pos),
                                    key=self.with_pos_embed(memory, pos),
                                    value=memory, attn_mask=memory_mask,
                                    key_padding_mask=memory_key_padding_mask)[0]
-
         tgt = tgt + self.dropout2(tgt2)
         tgt2 = self.norm3(tgt)
         tgt2 = self.linear2(self.dropout(self.activation(self.linear1(tgt2))))
         tgt = tgt + self.dropout3(tgt2)
+
+
         return tgt
 
     def forward(self, tgt, memory,

@@ -7,33 +7,44 @@ import torch.nn.functional as F
 from torch import nn
 
 from .transformer import build_transformer
-from .position_encoding import PositionEmbedding
+from .position_encoding import positionalencoding1d,PositionEmbedding
 
 
 class DETR(nn.Module):
     """ This is the DETR module that performs object detection """
-    def __init__(self, position_encoding, transformer, num_classes, num_queries, aux_loss=False, input_c=100):
+    def __init__(self, position_encoding, transformer, num_classes, num_queries, aux_loss=False, input_c=400):
         super(DETR, self).__init__()
         hidden_dim = transformer.d_model
         self.input_proj = nn.Conv1d(input_c, hidden_dim, kernel_size=1)  # pre-process layer
-        self.position_encoding = position_encoding  # position encoding layer, get encoding added to input
+        self.position_encoding = position_encoding
         self.transformer = transformer  # transformer layer
         self.query_embed = nn.Embedding(num_queries, hidden_dim)  # object query
-        self.class_embed = nn.Linear(hidden_dim, num_classes + 1)  # classifier for action
-        self.proposal_embed = MLP(hidden_dim, hidden_dim, 2, 3)  # proposal regression
+        self.class_ffn = nn.Sequential(
+            nn.Linear(hidden_dim, num_classes + 1),
+            nn.LeakyReLU(),
+            )
+        # classifier for action
+        #self.class_embed.bias.data.fill_(-2.19) # 使用focal loss时使用 根据数据集正负样本数目确定，coco数据集为0.0064:1 设置为-log((1-n)/n)
+        self.proposal_ffn = MLP(hidden_dim, hidden_dim, 2, 3)  # proposal regression
         self.aux_loss = aux_loss  # if use aux loss
 
-    def forward(self, x):
-        x = x.transpose(1, 2)
-        input_tensor = self.input_proj(x)
-        # TODO:position_encoding 修改
-        pos_embed = self.position_encoding(input_tensor) - input_tensor
+    def forward(self, x): # x:b,c,t 2,400,100
+        # x = x.transpose(1, 2)
+        b, c, t = x.size()
+        input_tensor = self.input_proj(x) # 2,256,100
+
+
+        pos_embed = self.position_encoding.unsqueeze(0).repeat(b, 1, 1) # 2,256,100
+        pos_embed = pos_embed.cuda()
+        # pos_embed = None # torch.zeros_like(input_tensor)
+
         hs = self.transformer(input_tensor, None, self.query_embed.weight, pos_embed)[0]
-        outputs_class = self.class_embed(hs)
-        outputs_coord = self.proposal_embed(hs).sigmoid()
-        out = {'classes': outputs_class[-1], 'segments': outputs_coord[-1]}
+        # hs:6,2,100,256   decoder_layer_num, batch, query_num, feature_dim
+        outputs_class = self.class_ffn(hs[-1])  #hs[-1] : 2,100,201
+        outputs_segment = self.proposal_ffn(hs[-1]).sigmoid()
+        out = {'classes': outputs_class, 'segments': outputs_segment}
         if self.aux_loss:
-            out['aux_outputs'] = self._set_aux_loss(outputs_class, outputs_coord)
+            out['aux_outputs'] = self._set_aux_loss(outputs_class, outputs_segment)
         return out
 
     @torch.jit.unused
@@ -84,7 +95,8 @@ class MLP(nn.Module):
 
 
 def build_detr(config):
-    position_encoding = PositionEmbedding(config.hidden_dim, config.feature_dim)
+    position_encoding = positionalencoding1d(config.hidden_dim, config.tscale)
+    # position_encoding = PositionEmbedding(config.tscale,config.hidden_dim)
     transformer = build_transformer(config)
     model = DETR(
         position_encoding,
@@ -92,6 +104,6 @@ def build_detr(config):
         num_classes=config.num_classes,
         num_queries=config.num_queries,
         aux_loss=False,
-        input_c=100
+        input_c=config.feature_dim
     )
     return model

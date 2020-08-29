@@ -57,8 +57,8 @@ class HungarianMatcher(nn.Module):
         bs, num_queries = outputs["classes"].shape[:2]
 
         # We flatten to compute the cost matrices in a batch
-        out_classes = outputs["classes"].flatten(0, 1).softmax(-1).long()  # [batch_size * num_queries, num_classes]
-        out_segments = outputs["segments"].flatten(0, 1)  # [batch_size * num_queries, 4]
+        out_classes = outputs["classes"].flatten(0, 1).softmax(-1)  # [batch_size * num_queries, num_classes]
+        out_segments = outputs["segments"].flatten(0, 1)  # [batch_size * num_queries, 2]
 
         # Also concat the target labels and boxes
         tgt_classes = torch.cat([v["classes"].long() for v in targets])
@@ -67,7 +67,7 @@ class HungarianMatcher(nn.Module):
         # Compute the classification cost. Contrary to the loss, we don't use the NLL,
         # but approximate it in 1 - proba[target class].
         # The 1 is a constant that doesn't change the matching, it can be ommitted.
-        cost_classes = -out_classes[:, tgt_classes]
+        cost_classes = -out_classes[:, tgt_classes] # cost都是b*q，target_num
 
         # Compute the L1 cost between boxes
         cost_segments = torch.cdist(out_segments, tgt_segments, p=1)
@@ -76,12 +76,12 @@ class HungarianMatcher(nn.Module):
 
         # Final cost matrix
         C = self.cost_segments * cost_segments + self.cost_classes * cost_classes + self.cost_diou * cost_diou
-        C = C.view(bs, num_queries, -1).cpu()
+        C = C.view(bs, num_queries, -1).cpu() # b,q,target_num
 
-        sizes = [len(v["segments"]) for v in targets]
+        sizes = [len(v["segments"]) for v in targets] # batch中每一个video中的segment数量
         indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(sizes, -1))]
         return [(torch.as_tensor(i, dtype=torch.int64), torch.as_tensor(j, dtype=torch.int64)) for i, j in indices]
 
 
 def build_matcher(config):
-    return HungarianMatcher(cost_classes=config.set_cost_classes, cost_segments=config.set_cost_segments, cost_diou=config.set_cost_diou)
+    return HungarianMatcher(cost_classes=config.matcher_cost_classes, cost_segments=config.matcher_cost_segments, cost_diou=config.matcher_cost_diou)

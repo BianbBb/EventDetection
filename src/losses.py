@@ -4,6 +4,7 @@ import torch.nn as nn
 from utils.misc import accuracy, is_dist_avail_and_initialized, get_world_size
 from utils.proposal_ops import distance_iou,cl2xy
 
+
 def binary_logistic_loss(gt_scores, pred_anchors):
     """
     Calculate weighted binary logistic loss
@@ -73,6 +74,40 @@ def IoU_loss(gt_iou, pred_iou, mask):  #todo :
 '''
 
 
+class FocalLoss(nn.Module):
+    def __init__(self, class_num, alpha=None, gamma=2, size_average=True):
+        super(FocalLoss, self).__init__()
+        if alpha is None:
+            self.alpha = torch.ones(class_num, 1)
+        else:
+            self.alpha = alpha
+
+        self.gamma = gamma
+        self.class_num = class_num
+        self.size_average = size_average
+
+    def forward(self, inputs, targets):
+        B, Q, N = inputs.size()  # batch query class_num+1
+        P = F.softmax(inputs, dim=-1)
+
+        class_mask = inputs.data.new(B, Q, N).fill_(0)
+        ids = targets.unsqueeze(-1)
+        class_mask.scatter_(-1, ids.data, 1.)
+
+        if inputs.is_cuda and not self.alpha.is_cuda:
+            self.alpha = self.alpha.cuda()
+
+        alpha = self.alpha[ids.data.squeeze(-1)]
+        probs = (P * class_mask).sum(-1).unsqueeze(-1)
+        log_p = probs.log()
+        batch_loss = -alpha * (torch.pow((1 - probs), self.gamma)) * log_p
+
+        if self.size_average:
+            loss = batch_loss.mean()
+        else:
+            loss = batch_loss.sum()
+        return loss
+
 
 class SetCriterion(nn.Module):
     """ This class computes the loss for DETR.
@@ -99,13 +134,19 @@ class SetCriterion(nn.Module):
         empty_weight[-1] = self.eos_coef
         self.register_buffer('empty_weight', empty_weight)
 
+
     def loss_classes(self, outputs, targets, indices, num_segments):
         """Classification loss (NLL)
         targets dicts must contain the key "classes" containing a tensor of dim [nb_target_segments]
         """
         assert 'classes' in outputs
-        pred_classes = outputs['classes'].softmax(-1)
 
+        # alpha = torch.ones(self.num_classes+1, 1)
+        # alpha[self.num_classes] = 1e-5
+        focal_loss = FocalLoss(class_num=self.num_classes+1, size_average=True)
+
+        #pred_classes = outputs['classes'].softmax(-1)
+        pred_classes = outputs['classes']
         idx = self._get_src_permutation_idx(indices) # batch_idx, src_idx
 
         #batch_idx = idx[0].tolist()
@@ -115,8 +156,9 @@ class SetCriterion(nn.Module):
                                     dtype=torch.int64, device=pred_classes.device)
         target_classes[idx] = target_classes_o
 
-        loss_ce = F.cross_entropy(pred_classes.transpose(1, 2), target_classes, self.empty_weight)
-        losses = {'loss_ce': loss_ce/len(target_classes_o)}
+        loss_class = F.cross_entropy(pred_classes.transpose(1, 2), target_classes, self.empty_weight)
+        # loss_class = focal_loss(pred_classes, target_classes)
+        losses = {'loss_class': loss_class}
         losses['class_error'] = 100 - accuracy(pred_classes[idx], target_classes_o)[0]
         return losses
 
@@ -147,14 +189,15 @@ class SetCriterion(nn.Module):
         pred_segments = outputs['segments'][idx]
         target_segments = torch.cat([t['segments'][i] for t, (_, i) in zip(targets, indices)], dim=0)
 
-        loss_segments = F.l1_loss(pred_segments, target_segments, reduction='none')
-
+        # loss_segments = F.l1_loss(pred_segments, target_segments, reduction='none')
+        loss_segments = F.smooth_l1_loss(pred_segments, target_segments, reduction='none')
         losses = {}
-        losses['loss_segments'] = loss_segments.sum() / num_segments
+        losses['loss_segments'] = loss_segments.mean()
 
         loss_diou = 1 - torch.diag(distance_iou(cl2xy(pred_segments),cl2xy(target_segments)))
         # loss_diou = ((1 - distance_iou(pred_segments,target_segments))/2).sum()
-        losses['loss_diou'] = loss_diou.sum() / num_segments /2
+        # losses['loss_diou'] = loss_diou.sum() / num_segments /2
+        losses['loss_diou'] = loss_diou.mean()
         return losses
 
     def _get_src_permutation_idx(self, indices):

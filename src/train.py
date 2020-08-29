@@ -21,18 +21,17 @@ def collate_fn(batch):
 
 # dataset
 train_dict, val_dict, test_dict = getDatasetDict(config.video_info_file, config.video_filter)
-dataset_train = MyDataSet(config, train_dict)
-dataset_val = MyDataSet(config, val_dict)
+dataset_train = MyDataSet(config, train_dict,flag='train')
+dataset_val = MyDataSet(config, val_dict,flag='val')
 
-train_dl = DataLoader(dataset_train, config.batch_size, collate_fn=collate_fn, shuffle=True)
-val_dl = DataLoader(dataset_val, config.batch_size, collate_fn=collate_fn, shuffle=False)
+train_dl = DataLoader(dataset_train, config.batch_size, collate_fn=collate_fn, shuffle=True, num_workers=8, pin_memory=True)
+val_dl = DataLoader(dataset_val, config.batch_size, collate_fn=collate_fn, shuffle=False, num_workers=8, pin_memory=True)
 
 
 model = network(config)
 
-trainer = DetrTrainer(config, model, train_dl, val_dl, optimizer='AdamW')
+trainer = DetrTrainer(config, model, train_dl, val_dl, optimizer='SGD')
 trainer.run()
-
 
 
 
