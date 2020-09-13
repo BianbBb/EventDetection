@@ -1,8 +1,10 @@
 import time
 import os
 import torch
+import math
 import numpy as np
 from runx.logx import logx
+from torch.optim.lr_scheduler import LambdaLR
 
 from .base_trainer import BaseTrainer
 from models.detr.matcher import build_matcher
@@ -26,11 +28,12 @@ class DetrTrainer(BaseTrainer):
         self.epoch = 0
         self.loss_map = ['classes', 'cardinality', 'segments', ]
         self.criterion = self.init_criterion()
-        self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode="min", factor=0.1, patience=20, verbose=True, threshold=0.0001, threshold_mode='rel', cooldown=0, min_lr=0, eps=1e-08)
+        lf = lambda x: (((1 + math.cos(x * math.pi / config.epoch_num)) / 2) ** 1.0) * 0.8 + 0.2  # cosine
+        self.scheduler = LambdaLR(self.optimizer, lr_lambda=lf) if config.lr_schduler else None
         self.max_norm = 0.1
 
-        # self.warm_up = [1, 10, 100, 100, 100,100,100,10,10,10,10,10,1]
-        self.warm_up = [1]
+        self.warm_up = [1, 10, 100, 100, 100,100,100,10,10,10,10,10,1]
+        # self.warm_up = [1]
 
     def init_criterion(self):
         weight_dict = {'loss_class': self.config.set_cost_classes, 'loss_segments': self.config.set_cost_segments, 'loss_diou': self.config.set_cost_diou}
@@ -110,7 +113,8 @@ class DetrTrainer(BaseTrainer):
                 self.optimizer.zero_grad()
                 step_loss.backward()
                 self.optimizer.step()
-                self.scheduler.step(self.VAL_LOSS)
+                if self.scheduler:
+                    self.scheduler.step(self.VAL_LOSS)
 
             # 每隔N_step打印一次
             N_step = 200

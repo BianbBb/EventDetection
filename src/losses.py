@@ -132,8 +132,7 @@ class SetCriterion(nn.Module):
         self.losses = losses
         empty_weight = torch.ones(self.num_classes + 1)
         empty_weight[-1] = self.eos_coef
-        self.register_buffer('empty_weight', empty_weight)
-
+        self.register_buffer('empty_weight', empty_weight)  # classification add weight
 
     def loss_classes(self, outputs, targets, indices, num_segments):
         """Classification loss (NLL)

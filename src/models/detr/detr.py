@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from torch import nn
 
 from .transformer import build_transformer
-from .position_encoding import positionalencoding1d,PositionEmbedding
+from .position_encoding import positionalencoding1d, LearnedPositionEncoding
 
 
 class DETR(nn.Module):
@@ -31,9 +31,9 @@ class DETR(nn.Module):
     def forward(self, x): # x:b,c,t 2,400,100
         # x = x.transpose(1, 2)
         b, c, t = x.size()
-        input_tensor = self.input_proj(x) # 2,256,100
-
-
+        # input_tensor = self.input_proj(x) # b,256,100
+        # print(input_tensor.size())
+        input_tensor = x
         pos_embed = self.position_encoding.unsqueeze(0).repeat(b, 1, 1) # 2,256,100
         pos_embed = pos_embed.cuda()
         # pos_embed = None # torch.zeros_like(input_tensor)
@@ -95,8 +95,8 @@ class MLP(nn.Module):
 
 
 def build_detr(config):
+
     position_encoding = positionalencoding1d(config.hidden_dim, config.tscale)
-    # position_encoding = PositionEmbedding(config.tscale,config.hidden_dim)
     transformer = build_transformer(config)
     model = DETR(
         position_encoding,

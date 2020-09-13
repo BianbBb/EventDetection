@@ -88,6 +88,7 @@ class Config(object):
         self.train_pth_file = training_info['pth_file']
         self.train_pth_load_dir = os.path.join(self.log_root, self.train_pth_name, self.train_pth_file)
         self.learning_rate = float(training_info['learning_rate'])
+        self.lr_schduler = bool(training_info['lr_scheduler'])
         self.epoch_num = training_info['epoch_num']
         self.batch_size = training_info['batch_size']
 

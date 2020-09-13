@@ -47,8 +47,9 @@ training:
   resume: False  # if load pre-trained model
   pth_name: 0816-0930-activitynet
   pth_file: best_checkpoint_ep99.pth
-  learning_rate: 1e-3
-  epoch_num: 2
+  learning_rate: 1e-5
+  lr_scheduler: False
+  epoch_num: 100
   batch_size: 8
 
 model:
@@ -72,7 +73,7 @@ model:
     hidden_dim: 400 # Size of the embeddings (dimension of the transformer)
     dropout: 0.1 # Dropout applied in the transformer
     nheads: 8 # Number of attention heads inside the transformer's attentions
-    num_queries: 15 # Number of query slots
+    num_queries: 50 # Number of query slots
     pre_norm: True
 
 
@@ -81,5 +82,5 @@ model:
 testing:
   mode: validation # validation or testing
   test_batch_size: 1
-  pth_name: 0828-1522-activitynet # model weights
-  pth_file: best_checkpoint_ep99.pth
+  pth_name: 0909-1336-activitynet # model weights
+  pth_file: last_checkpoint_ep99.pth

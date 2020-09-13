@@ -7,45 +7,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-__all__ = ['PositionEmbedding']
-
-
-class PositionEmbedding(nn.Module):
-    MODE_EXPAND = 'MODE_EXPAND'
-    MODE_ADD = 'MODE_ADD'
-    MODE_CONCAT = 'MODE_CONCAT'
-
-    def __init__(self, num_embeddings, embedding_dim, mode=MODE_ADD):
-        super(PositionEmbedding, self).__init__()
-        self.num_embeddings = num_embeddings # 100
-        self.embedding_dim = embedding_dim   # 256
-        self.mode = mode
-        if self.mode == self.MODE_EXPAND:
-            self.weight = nn.Parameter(torch.Tensor(num_embeddings * 2 + 1, embedding_dim))
-        else:
-            self.weight = nn.Parameter(torch.Tensor(num_embeddings, embedding_dim))
-        self.reset_parameters()
-
-    def reset_parameters(self):
-        torch.nn.init.xavier_normal_(self.weight)
-
-    def forward(self, x):
-        if self.mode == self.MODE_EXPAND:
-            indices = torch.clamp(x, -self.num_embeddings, self.num_embeddings) + self.num_embeddings
-            return F.embedding(indices.type(torch.LongTensor), self.weight)
-        batch_size, seq_len = x.size()[:2]
-        embeddings = self.weight[:seq_len, :].view(1, seq_len, self.embedding_dim)
-        if self.mode == self.MODE_ADD:
-            return x + embeddings
-        if self.mode == self.MODE_CONCAT:
-            return torch.cat((x, embeddings.repeat(batch_size, 1, 1)), dim=-1)
-        raise NotImplementedError('Unknown mode: %s' % self.mode)
-
-    def extra_repr(self):
-        return 'num_embeddings={}, embedding_dim={}, mode={}'.format(
-            self.num_embeddings, self.embedding_dim, self.mode,
-        )
-
 
 def positionalencoding1d(d_model, length):
     """
@@ -72,32 +33,34 @@ def positionalencoding1d(d_model, length):
     pe.requires_grad = False
     return pe
 
-'''
-def positionalencoding2d(d_model, height, width):
-    """
-    :param d_model: dimension of the model
-    :param height: height of the positions
-    :param width: width of the positions
-    :return: d_model*height*width position matrix
-    """
-    if d_model % 4 != 0:
-        raise ValueError("Cannot use sin/cos positional encoding with "
-                         "odd dimension (got dim={:d})".format(d_model))
-    pe = torch.zeros(d_model, height, width)
-    # Each dimension use half of d_model
-    d_model = int(d_model / 2)
-    div_term = torch.exp(torch.arange(0., d_model, 2) *
-                         -(math.log(10000.0) / d_model))
-    pos_w = torch.arange(0., width).unsqueeze(1)
-    pos_h = torch.arange(0., height).unsqueeze(1)
-    pe[0:d_model:2, :, :] = torch.sin(pos_w * div_term).transpose(0, 1).unsqueeze(1).repeat(1, height, 1)
-    pe[1:d_model:2, :, :] = torch.cos(pos_w * div_term).transpose(0, 1).unsqueeze(1).repeat(1, height, 1)
-    pe[d_model::2, :, :] = torch.sin(pos_h * div_term).transpose(0, 1).unsqueeze(2).repeat(1, 1, width)
-    pe[d_model + 1::2, :, :] = torch.cos(pos_h * div_term).transpose(0, 1).unsqueeze(2).repeat(1, 1, width)
 
-    return pe
+class PositionalEncoding(nn.Module):
+    def __init__(self, d_model,dropout=0.1, max_len=5000):
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=dropout)
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0).transpose(0, 1)
+        self.register_buffer('pe', pe)
 
-'''
+    def forward(self, x):
+        x = x + self.pe[:x.size(0), :]
+        return self.dropout(x)
+
+
+class LearnedPositionEncoding(nn.Embedding):
+    def __init__(self,d_model, dropout = 0.1,max_len=5000):
+        super().__init__(max_len, d_model)
+        self.dropout = nn.Dropout(p = dropout)
+
+    def forward(self, x):
+        weight = self.weight.data.unsqueeze(1)
+        # x = x + weight[:x.size(0),:]
+        # return self.dropout(x)
+        return weight[:x.size(0),:]
 
 
 if __name__ == '__main__':
@@ -110,7 +73,8 @@ if __name__ == '__main__':
     #
     # zzz = emd(x)[0].detach().numpy()
 
-    pe = positionalencoding1d(400,100,2)
+    pe = positionalencoding1d(400,100)
+    pe = pe.unsqueeze(0).repeat(32, 1, 1)
     # print(pe.size())
     pe = pe[0].cpu().numpy()
 
